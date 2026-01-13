@@ -20,17 +20,6 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# === DEBUG: Check API Key (Add this block) ===
-import os
-st.sidebar.subheader("🔧 Debug Info")
-try:
-    api_key_from_secret = st.secrets["RAPIDAPI_KEY"]
-    st.sidebar.success("✅ RAPIDAPI_KEY found in secrets")
-except Exception as e:
-    st.sidebar.error(f"❌ RAPIDAPI_KEY NOT FOUND: {e}")
-    st.sidebar.info("Please add it in Space Settings -> Secrets")
-# === END DEBUG ===
-
 # Initialize API and matcher
 @st.cache_resource
 def get_job_api():
