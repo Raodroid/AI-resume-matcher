@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environmentgit add .gitignore
+venv/
+.env/
+.venv/
+env/
+ENV/
+
+# Python executables (Windows)
+*.exe
+*.pyd
+*.dll
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Data files
+*.pdf
+*.docx
+*.pkl
+*.joblib
+*.csv > 100KB
+vnev/
+venv/
