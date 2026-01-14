@@ -12,6 +12,7 @@ from job_api import JobSearchAPI
 from job_matcher_simple import JobMatcher
 from resume_parser_simple import extract_text_from_pdf, extract_text_from_docx
 
+
 # Set page config
 st.set_page_config(
     page_title="AI Resume Matcher - Real Jobs",
@@ -67,9 +68,9 @@ def main():
     if 'jobs_df' not in st.session_state:
         st.session_state.jobs_df = pd.DataFrame()
     if 'search_query' not in st.session_state:
-        st.session_state.search_query = "software engineer"
+        st.session_state.search_query = "Enter desired role"
     if 'search_location' not in st.session_state:
-        st.session_state.search_location = "United States"
+        st.session_state.search_location = "E.g. Singapore"
     
     # Sidebar for job search
     with st.sidebar:

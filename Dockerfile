@@ -30,8 +30,14 @@ RUN pip install --upgrade pip \
 # Copy the rest of your app
 COPY . .
 
+# Create empty secrets.toml to suppress warning
+RUN mkdir -p /app/.streamlit && \
+    echo "# Using environment variables" > /app/.streamlit/secrets.toml
+
 # Hugging Face expects port 7860
 EXPOSE 7860
 
 # Start Streamlit
 CMD ["streamlit", "run", "app.py"]
+
+
