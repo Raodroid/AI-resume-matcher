@@ -2,36 +2,47 @@ import PyPDF2
 from docx import Document
 import re
 
-def extract_text_from_pdf(pdf_path):
-    """Extract text from PDF file"""
+def extract_text_from_pdf(file):
+    """Extract text from PDF file or file object"""
     try:
-        with open(pdf_path, 'rb') as file:
+        if hasattr(file, 'read'):  # File-like object
             reader = PyPDF2.PdfReader(file)
-            text = ''
-            for page in reader.pages:
-                text += page.extract_text()
+        else:  # File path
+            reader = PyPDF2.PdfReader(file)
+        
+        text = ""
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text += page_text + "\n"
+        
         return clean_text(text)
     except Exception as e:
-        print(f"Error reading PDF: {e}")
+        print(f"PDF error: {e}")
         return ""
 
-def extract_text_from_docx(docx_path):
-    """Extract text from DOCX file"""
+def extract_text_from_docx(file):
+    """Extract text from DOCX file or file object"""
     try:
-        doc = Document(docx_path)
-        text = "\n".join([paragraph.text for paragraph in doc.paragraphs])
+        if hasattr(file, 'read'):  # File-like object
+            doc = Document(file)
+        else:  # File path
+            doc = Document(file)
+        
+        text = "\n".join([para.text for para in doc.paragraphs])
         return clean_text(text)
     except Exception as e:
-        print(f"Error reading DOCX: {e}")
+        print(f"DOCX error: {e}")
         return ""
 
 def clean_text(text):
-    """Clean extracted text"""
+    """Clean text by removing extra spaces and special chars"""
     if not text:
         return ""
     
     # Remove extra whitespace
     text = re.sub(r'\s+', ' ', text)
-    # Remove special characters but keep basic punctuation
-    text = re.sub(r'[^\w\s.,!?;:-]', ' ', text)
+    # Remove control characters
+    text = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', text)
+    
     return text.strip()
