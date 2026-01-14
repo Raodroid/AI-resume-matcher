@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import os
 from datetime import datetime
+import re
 
 # Import our modules
 from job_api import JobSearchAPI
@@ -16,136 +17,145 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Enhanced Black Dark Theme CSS
+# Modern Web Dark Theme CSS
 st.markdown("""
 <style>
-    /* Main background - pure black */
+    /* Main background - comfortable dark gray like modern web apps */
     .stApp {
-        background-color: #000000;
+        background-color: #1a1a1a;
     }
     
-    /* Sidebar styling - dark black */
+    /* Sidebar styling */
     [data-testid="stSidebar"] {
-        background-color: #0a0a0a;
-        border-right: 1px solid #1a1a1a;
+        background-color: #1f1f1f;
+        border-right: 1px solid #333333;
     }
     
     [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] h2 {
-        color: #3b82f6;
+        color: #60a5fa;
         font-weight: 700;
         margin-top: 1rem;
     }
     
-    /* Card styling with subtle glow */
+    /* Card styling */
     .job-card {
-        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-        border-radius: 16px;
+        background: #242424;
+        border-radius: 12px;
         padding: 1.5rem;
-        margin: 1.5rem 0;
-        border: 1px solid #2a2a2a;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+        margin: 1rem 0;
+        border: 1px solid #333333;
         transition: all 0.3s ease;
         position: relative;
-        overflow: hidden;
-    }
-    
-    .job-card::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 3px;
-        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
-        opacity: 0;
-        transition: opacity 0.3s ease;
     }
     
     .job-card:hover {
-        transform: translateY(-5px);
-        border-color: #3b82f6;
-        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
-    }
-    
-    .job-card:hover::before {
-        opacity: 1;
+        transform: translateY(-3px);
+        border-color: #60a5fa;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
     }
     
     /* Score badge styling */
     .score-badge {
-        background: rgba(59, 130, 246, 0.05);
-        border-radius: 12px;
-        padding: 1rem;
+        background: rgba(59, 130, 246, 0.1);
+        border-radius: 10px;
+        padding: 0.8rem;
         text-align: center;
         border: 2px solid;
     }
     
     .score-high { 
-        color: #10b981;
-        border-color: #10b981;
+        color: #34d399;
+        border-color: #34d399;
     }
     
     .score-medium { 
-        color: #f59e0b;
-        border-color: #f59e0b;
+        color: #fbbf24;
+        border-color: #fbbf24;
     }
     
     .score-low { 
-        color: #ef4444;
-        border-color: #ef4444;
+        color: #f87171;
+        border-color: #f87171;
     }
     
     /* Text colors */
     .white-text { color: #e5e7eb; }
-    .gray-text { color: #6b7280; }
-    .blue-text { color: #3b82f6; }
+    .gray-text { color: #9ca3af; }
+    .blue-text { color: #60a5fa; }
+    
+    /* Bullet points styling */
+    .job-bullets {
+        color: #d1d5db;
+        font-size: 0.95rem;
+        line-height: 1.8;
+        margin: 1rem 0;
+    }
+    
+    .job-bullets li {
+        margin-bottom: 0.5rem;
+    }
+    
+    .skills-section {
+        background: #1f1f1f;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-top: 1rem;
+        border-left: 3px solid #60a5fa;
+    }
+    
+    .skill-tag {
+        display: inline-block;
+        background: rgba(96, 165, 250, 0.15);
+        color: #93c5fd;
+        padding: 0.4rem 0.8rem;
+        border-radius: 6px;
+        margin: 0.3rem 0.3rem 0.3rem 0;
+        font-size: 0.85rem;
+        font-weight: 500;
+        border: 1px solid rgba(96, 165, 250, 0.3);
+    }
     
     /* Button styling */
     .stButton > button {
         background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
-        border-radius: 10px;
+        border-radius: 8px;
         font-weight: 600;
         border: none;
         padding: 0.6rem 1.5rem;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
     
     .stButton > button:hover {
         background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-        box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
         transform: translateY(-2px);
     }
     
     /* Input fields */
     .stTextInput > div > div > input,
     .stTextArea > div > div > textarea {
-        background-color: #0f0f0f;
+        background-color: #242424;
         color: #e5e7eb;
-        border: 1px solid #2a2a2a;
+        border: 1px solid #333333;
         border-radius: 8px;
-        padding: 0.6rem;
     }
     
     .stTextInput > div > div > input:focus,
     .stTextArea > div > div > textarea:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 1px #3b82f6;
+        border-color: #60a5fa;
+        box-shadow: 0 0 0 1px #60a5fa;
     }
     
     /* File uploader */
     [data-testid="stFileUploader"] {
-        background-color: #0f0f0f;
-        border: 2px dashed #2a2a2a;
-        border-radius: 12px;
+        background-color: #242424;
+        border: 2px dashed #333333;
+        border-radius: 10px;
         padding: 2rem;
-        transition: all 0.3s ease;
     }
     
     [data-testid="stFileUploader"]:hover {
-        border-color: #3b82f6;
-        background-color: #1a1a1a;
+        border-color: #60a5fa;
     }
     
     /* Tabs */
@@ -155,68 +165,55 @@ st.markdown("""
     }
     
     .stTabs [data-baseweb="tab"] {
-        background-color: #0f0f0f;
-        border-radius: 10px 10px 0 0;
-        color: #6b7280;
+        background-color: #242424;
+        border-radius: 8px 8px 0 0;
+        color: #9ca3af;
         padding: 12px 24px;
         font-weight: 600;
-        border: 1px solid #2a2a2a;
+        border: 1px solid #333333;
     }
     
     .stTabs [aria-selected="true"] {
-        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        background: #3b82f6;
         color: white;
         border-color: #3b82f6;
     }
     
     /* Metrics */
     [data-testid="stMetricValue"] {
-        color: #3b82f6;
+        color: #60a5fa;
         font-size: 2rem;
         font-weight: 700;
     }
     
     [data-testid="stMetricLabel"] {
-        color: #6b7280;
+        color: #9ca3af;
         font-weight: 600;
     }
     
     /* Select box */
     .stSelectbox > div > div {
-        background-color: #0f0f0f;
-        border-color: #2a2a2a;
+        background-color: #242424;
+        border-color: #333333;
         border-radius: 8px;
-    }
-    
-    /* Slider */
-    .stSlider > div > div > div {
-        background-color: #2a2a2a;
     }
     
     /* Expander */
     .streamlit-expanderHeader {
-        background-color: #0f0f0f;
+        background-color: #242424;
         border-radius: 8px;
         color: #e5e7eb;
         font-weight: 600;
     }
     
     .streamlit-expanderContent {
-        background-color: #000000;
-        border: 1px solid #2a2a2a;
-        border-radius: 0 0 8px 8px;
-    }
-    
-    /* Success/Error/Info boxes */
-    .stSuccess, .stError, .stInfo {
-        background-color: #0f0f0f;
-        border-radius: 8px;
-        padding: 1rem;
+        background-color: #1f1f1f;
+        border: 1px solid #333333;
     }
     
     /* Divider */
     hr {
-        border-color: #2a2a2a;
+        border-color: #333333;
         margin: 2rem 0;
     }
     
@@ -224,59 +221,72 @@ st.markdown("""
     #MainMenu {visibility: hidden;}
     footer {visibility: hidden;}
     
-    /* Header gradient text */
-    .gradient-text {
-        background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
     /* Info card */
     .info-card {
-        background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-        border-radius: 12px;
-        padding: 1.5rem;
-        border: 1px solid #2a2a2a;
+        background: #242424;
+        border-radius: 10px;
+        padding: 1.2rem;
+        border: 1px solid #333333;
         margin: 1rem 0;
-    }
-    
-    /* Icon styling */
-    .icon-box {
-        background: rgba(59, 130, 246, 0.1);
-        border-radius: 8px;
-        padding: 0.5rem;
-        display: inline-block;
-        margin-right: 0.5rem;
-    }
-    
-    /* Company description */
-    .company-desc {
-        color: #9ca3af;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin: 1rem 0;
-    }
-    
-    /* Read more button */
-    .read-more-btn {
-        background: transparent;
-        color: #3b82f6;
-        border: 1px solid #3b82f6;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        font-size: 0.9rem;
-    }
-    
-    .read-more-btn:hover {
-        background: #3b82f6;
-        color: white;
     }
 </style>
 """, unsafe_allow_html=True)
+
+# Helper function to extract skills from job description
+def extract_skills(description):
+    if not description or pd.isna(description):
+        return []
+    
+    # Common skill keywords to look for
+    skill_patterns = [
+        r'\b(?:Python|Java|JavaScript|TypeScript|C\+\+|C#|Ruby|Go|Rust|Swift|Kotlin)\b',
+        r'\b(?:React|Angular|Vue|Node\.js|Django|Flask|Spring|Express)\b',
+        r'\b(?:AWS|Azure|GCP|Docker|Kubernetes|Jenkins|Git|CI/CD)\b',
+        r'\b(?:SQL|PostgreSQL|MongoDB|MySQL|Redis|Oracle)\b',
+        r'\b(?:Machine Learning|AI|Data Science|Analytics|Statistics)\b',
+        r'\b(?:REST|API|Microservices|Agile|Scrum|DevOps)\b',
+        r'\b(?:HTML|CSS|Sass|Tailwind|Bootstrap)\b',
+        r'\b(?:TensorFlow|PyTorch|Pandas|NumPy|Scikit-learn)\b',
+    ]
+    
+    skills = set()
+    desc_lower = description.lower()
+    
+    for pattern in skill_patterns:
+        matches = re.findall(pattern, description, re.IGNORECASE)
+        skills.update(matches)
+    
+    return list(skills)[:10]  # Return max 10 skills
+
+# Helper function to extract key requirements
+def extract_key_points(description):
+    if not description or pd.isna(description):
+        return ["No description available"]
+    
+    # Try to find bullet points or split by common delimiters
+    lines = description.split('\n')
+    points = []
+    
+    for line in lines:
+        line = line.strip()
+        # Look for lines that start with bullets, numbers, or are substantive
+        if line and (line[0] in ['•', '-', '*', '●'] or line[0].isdigit() or len(line) > 30):
+            # Clean up the line
+            clean_line = re.sub(r'^[•\-*●\d.)\s]+', '', line).strip()
+            if len(clean_line) > 20 and len(clean_line) < 150:
+                points.append(clean_line)
+                if len(points) >= 5:  # Limit to 5 points
+                    break
+    
+    if not points:
+        # If no bullet points found, extract first few sentences
+        sentences = description.split('.')
+        for sent in sentences[:3]:
+            sent = sent.strip()
+            if len(sent) > 30:
+                points.append(sent)
+    
+    return points if points else ["View full description for details"]
 
 # Initialize session state
 if 'resume_text' not in st.session_state:
@@ -288,9 +298,9 @@ if 'matches_df' not in st.session_state:
 if 'active_tab' not in st.session_state:
     st.session_state.active_tab = 0
 
-# Header with gradient
-st.markdown("<h1 style='text-align: center;' class='gradient-text'>🤖 Resume Matcher</h1>", unsafe_allow_html=True)
-st.markdown("<p style='color: #6b7280; text-align: center; font-size: 1.1rem; margin-bottom: 2rem;'>Upload your resume • Find perfect matching jobs • Land your dream role</p>", unsafe_allow_html=True)
+# Header
+st.markdown("<h1 style='text-align: center; color: #e5e7eb;'>🤖 Resume Matcher</h1>", unsafe_allow_html=True)
+st.markdown("<p style='color: #9ca3af; text-align: center; font-size: 1.1rem; margin-bottom: 2rem;'>Upload your resume • Find perfect matching jobs • Land your dream role</p>", unsafe_allow_html=True)
 
 # Sidebar
 with st.sidebar:
@@ -326,22 +336,16 @@ with st.sidebar:
         chars = len(st.session_state.resume_text)
         st.metric("Word Count", f"{words:,}")
         st.metric("Characters", f"{chars:,}")
-        st.markdown(f"<div class='info-card'><div style='color: #10b981; font-weight: 600;'>✅ Resume Loaded</div></div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='info-card'><div style='color: #34d399; font-weight: 600;'>✅ Resume Loaded</div></div>", unsafe_allow_html=True)
     else:
-        st.markdown("<div class='info-card'><div style='color: #6b7280;'>📄 No resume uploaded yet</div></div>", unsafe_allow_html=True)
+        st.markdown("<div class='info-card'><div style='color: #9ca3af;'>📄 No resume uploaded yet</div></div>", unsafe_allow_html=True)
     
     if not st.session_state.jobs_df.empty:
         st.divider()
         st.markdown("## 💼 Jobs Available")
         st.metric("Total Jobs", len(st.session_state.jobs_df))
 
-# Main content - use active_tab to control which tab is shown
-if st.session_state.active_tab == 0:
-    default_tab = 0
-else:
-    default_tab = 1
-
-# Create tabs but control the active one
+# Main content
 tab1, tab2 = st.tabs(["📄 Upload Resume", "🎯 Job Matches"])
 
 # Tab 1: Upload Resume
@@ -396,7 +400,7 @@ with tab1:
         if st.session_state.resume_text:
             # Find matches button
             if not st.session_state.jobs_df.empty:
-                st.markdown(f"<div class='info-card'><div style='color: #10b981; font-size: 0.9rem;'>✓ Resume ready</div><div style='color: #10b981; font-size: 0.9rem;'>✓ {len(st.session_state.jobs_df)} jobs loaded</div></div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='info-card'><div style='color: #34d399; font-size: 0.9rem;'>✓ Resume ready</div><div style='color: #34d399; font-size: 0.9rem;'>✓ {len(st.session_state.jobs_df)} jobs loaded</div></div>", unsafe_allow_html=True)
                 
                 if st.button("🤖 Match Jobs", type="primary", use_container_width=True):
                     with st.spinner("🔍 Analyzing and matching..."):
@@ -424,7 +428,7 @@ with tab1:
         st.markdown("### 💡 Tips")
         st.markdown("""
         <div class='info-card'>
-        <div style='color: #6b7280; font-size: 0.9rem;'>
+        <div style='color: #9ca3af; font-size: 0.9rem;'>
         • Use a detailed resume<br>
         • Include keywords<br>
         • List your skills<br>
@@ -439,8 +443,8 @@ with tab2:
         st.markdown("""
         <div style='text-align: center; padding: 4rem 2rem;'>
             <div style='font-size: 4rem; margin-bottom: 1rem;'>🎯</div>
-            <h2 style='color: #3b82f6; margin-bottom: 1rem;'>No Matches Yet</h2>
-            <p style='color: #6b7280; font-size: 1.1rem;'>Upload your resume and search for jobs to see matches here</p>
+            <h2 style='color: #60a5fa; margin-bottom: 1rem;'>No Matches Yet</h2>
+            <p style='color: #9ca3af; font-size: 1.1rem;'>Upload your resume and search for jobs to see matches here</p>
         </div>
         """, unsafe_allow_html=True)
     else:
@@ -508,16 +512,11 @@ with tab2:
             # Get job details
             job_title = row.get('job_title', 'Position')
             company = row.get('employer_name', 'Company')
+            job_desc = row.get('job_description', '')
             
-            # Company description (placeholder - you can enhance this with actual data)
-            company_desc = row.get('job_description', '')
-            if company_desc:
-                # Get first 150 characters as summary
-                company_summary = company_desc[:150].strip()
-                if len(company_desc) > 150:
-                    company_summary += "..."
-            else:
-                company_summary = f"{company} is hiring for this position. View full details to learn more about the role and company."
+            # Extract key points and skills
+            key_points = extract_key_points(job_desc)
+            skills = extract_skills(job_desc)
             
             # Apply link
             apply_link = row.get('job_apply_link', '#')
@@ -529,8 +528,8 @@ with tab2:
             col_title, col_score = st.columns([3, 1])
             
             with col_title:
-                st.markdown(f"<h3 style='color: #e5e7eb; margin-bottom: 0.3rem;'>{job_title}</h3>", unsafe_allow_html=True)
-                st.markdown(f"<p style='color: #6b7280; margin: 0; font-size: 1rem;'><span class='icon-box'>🏢</span>{company}</p>", unsafe_allow_html=True)
+                st.markdown(f"<h3 style='color: #e5e7eb; margin-bottom: 0.5rem;'>{job_title}</h3>", unsafe_allow_html=True)
+                st.markdown(f"<p style='color: #9ca3af; margin: 0; font-size: 1rem;'>🏢 {company}</p>", unsafe_allow_html=True)
             
             with col_score:
                 st.markdown(f"""
@@ -540,27 +539,36 @@ with tab2:
                 </div>
                 """, unsafe_allow_html=True)
             
-            # Company description
-            st.markdown(f"<div class='company-desc'>{company_summary}</div>", unsafe_allow_html=True)
+            # Key requirements section
+            st.markdown("<div style='margin-top: 1rem;'><p style='color: #60a5fa; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem;'>📋 KEY REQUIREMENTS</p></div>", unsafe_allow_html=True)
             
-            # Action buttons
-            col_apply, col_details = st.columns([1, 1])
+            bullets_html = "<ul class='job-bullets' style='margin-left: 1.5rem;'>"
+            for point in key_points:
+                bullets_html += f"<li>{point}</li>"
+            bullets_html += "</ul>"
+            st.markdown(bullets_html, unsafe_allow_html=True)
             
-            with col_apply:
-                if apply_link and apply_link != '#':
-                    st.markdown(
-                        f'<a href="{apply_link}" target="_blank" style="text-decoration: none;">'
-                        '<button style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); transition: all 0.3s;">Apply Now →</button>'
-                        '</a>',
-                        unsafe_allow_html=True
-                    )
+            # Skills section
+            if skills:
+                st.markdown("<div class='skills-section'>", unsafe_allow_html=True)
+                st.markdown("<p style='color: #60a5fa; font-weight: 600; font-size: 0.9rem; margin-bottom: 0.8rem;'>🎯 REQUIRED SKILLS</p>", unsafe_allow_html=True)
+                
+                skills_html = ""
+                for skill in skills:
+                    skills_html += f"<span class='skill-tag'>{skill}</span>"
+                st.markdown(skills_html, unsafe_allow_html=True)
+                st.markdown("</div>", unsafe_allow_html=True)
             
-            with col_details:
-                with st.expander("📄 Read More"):
-                    if company_desc:
-                        st.markdown(f"<div style='color: #9ca3af; font-size: 0.9rem;'>{company_desc[:500]}</div>", unsafe_allow_html=True)
-                    else:
-                        st.markdown("<div style='color: #6b7280; font-size: 0.9rem;'>No additional details available.</div>", unsafe_allow_html=True)
+            # Apply button
+            st.markdown("<div style='margin-top: 1rem;'>", unsafe_allow_html=True)
+            if apply_link and apply_link != '#':
+                st.markdown(
+                    f'<a href="{apply_link}" target="_blank" style="text-decoration: none;">'
+                    '<button style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; padding: 0.7rem 1.5rem; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2); transition: all 0.3s;">Apply Now →</button>'
+                    '</a>',
+                    unsafe_allow_html=True
+                )
+            st.markdown("</div>", unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
         
@@ -583,7 +591,7 @@ with tab2:
 st.markdown("---")
 st.markdown("""
 <div style='text-align: center; padding: 2rem 0;'>
-    <p style='color: #4b5563; font-size: 0.9rem;'>Resume Matcher • Powered by AI</p>
-    <p style='color: #374151; font-size: 0.8rem;'>Find your perfect job match with intelligent resume analysis</p>
+    <p style='color: #6b7280; font-size: 0.9rem;'>Resume Matcher • Powered by AI</p>
+    <p style='color: #4b5563; font-size: 0.8rem;'>Find your perfect job match with intelligent resume analysis</p>
 </div>
 """, unsafe_allow_html=True)
