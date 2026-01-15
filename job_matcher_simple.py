@@ -432,7 +432,7 @@ class JobMatcher:
                            resume_text: str, 
                            jobs_df: pd.DataFrame, 
                            top_n: int = 15,
-                           min_score: float = 30.0) -> pd.DataFrame:
+                           min_score: float = 0.0) -> pd.DataFrame:
         """
         Enhanced matching function with multiple scoring factors
         
