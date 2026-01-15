@@ -86,7 +86,7 @@ class JobSearchAPI:
             return None
         
         available_keys = [k for i, k in enumerate(self.rapidapi_keys) 
-                         if i not in self.failed_keys]
+                          if i not in self.failed_keys]
         
         if not available_keys:
             # Reset failed keys if all failed
@@ -103,7 +103,7 @@ class JobSearchAPI:
         return key
     
     def _try_rapidapi(self, query: str, location: str, max_retries: int = 3) -> Optional[List[Dict]]:
-        """Try to get 1 job from RapidAPI with multiple key support"""
+        """Try to get jobs from RapidAPI with multiple key support"""
         if not self.can_use_rapidapi:
             return None
         
@@ -169,7 +169,7 @@ class JobSearchAPI:
                 if data.get("status") == "OK" and data.get("data"):
                     jobs = data["data"]
                     logger.info(f"✅ RapidAPI returned {len(jobs)} jobs")
-                    return jobs[:1]  # Return only 1 job
+                    return jobs[:3]  # Return up to 3 jobs
                 else:
                     logger.warning(f"⚠️ RapidAPI returned error: {data.get('status')}")
                     continue
@@ -187,7 +187,7 @@ class JobSearchAPI:
         return None
     
     def _try_adzuna(self, query: str, location: str) -> Optional[List[Dict]]:
-        """Try to get 1 job from Adzuna (only if RapidAPI fails)"""
+        """Try to get jobs from Adzuna (only if RapidAPI fails)"""
         if not self.can_use_adzuna:
             return None
         
@@ -203,7 +203,7 @@ class JobSearchAPI:
                 "app_id": self.adzuna_app_id,
                 "app_key": self.adzuna_api_key,
                 "what": query if query else "software engineer",
-                "results_per_page": 3,  # Get 3 but we'll only return 1
+                "results_per_page": 3,  # Get 3 results
                 "max_days_old": 7
             }
             
@@ -220,7 +220,7 @@ class JobSearchAPI:
                 data = response.json()
                 jobs = data.get("results", [])
                 logger.info(f"✅ Adzuna returned {len(jobs)} jobs")
-                return jobs[:1]  # Return only 1 job
+                return jobs[:3]  # Return up to 3 jobs
             else:
                 logger.warning(f"⚠️ Adzuna API error: {response.status_code}")
                 return None
@@ -288,7 +288,7 @@ class JobSearchAPI:
         """Enhanced job data from API response"""
         try:
             # Extract basic info from different API formats
-            if source == "rapidapi":
+            if source.startswith("rapidapi"):
                 job_id = job_data.get("job_id", "")
                 job_title = job_data.get("job_title", "Position")
                 employer_name = job_data.get("employer_name", "Company")
@@ -425,7 +425,7 @@ class JobSearchAPI:
             }
     
     def search_jobs(self, query: str, location: str = "", num_pages: int = 1, **kwargs) -> pd.DataFrame:
-        """Search for jobs - returns ONLY 1 job from real APIs, NO MOCK DATA"""
+        """Search for jobs - returns up to 3 jobs from real APIs, NO MOCK DATA"""
         logger.info(f"🔍 Searching: '{query}' in '{location}' (real APIs only)")
         
         # Check API call limit
@@ -444,9 +444,9 @@ class JobSearchAPI:
         
         if cached_jobs:
             logger.info("📦 Using cached API results")
-            # Still enhance the cached job
+            # Still enhance the cached jobs
             enhanced_jobs = []
-            for job in cached_jobs[:1]:
+            for job in cached_jobs[:3]:  # Process up to 3 cached jobs
                 enhanced_job = self._enhance_job_data(job, "rapidapi_cached")
                 enhanced_jobs.append(enhanced_job)
             return pd.DataFrame(enhanced_jobs)
@@ -474,15 +474,15 @@ class JobSearchAPI:
         # Cache successful results
         self._save_to_cache(cache_key, jobs_data)
         
-        # Enhance the single job
+        # Enhance the jobs
         enhanced_jobs = []
-        for job in jobs_data[:1]:  # Only process 1 job
+        for job in jobs_data[:3]:  # Process up to 3 jobs
             enhanced_job = self._enhance_job_data(job, source)
             enhanced_jobs.append(enhanced_job)
         
         # Log API usage
         logger.info(f"📊 API calls today: {self.api_calls_today}/{self.max_api_calls_per_day}")
-        logger.info(f"✅ Successfully got 1 real job from {source}")
+        logger.info(f"✅ Successfully got {len(enhanced_jobs)} real job(s) from {source}")
         
         return pd.DataFrame(enhanced_jobs)
 
@@ -507,11 +507,13 @@ def test_real_api():
         print(f"\n📊 Results:")
         print(f"  Found: {len(jobs)} job(s)")
         if not jobs.empty:
-            print(f"  Job Title: {jobs.iloc[0]['job_title']}")
-            print(f"  Company: {jobs.iloc[0]['employer_name']}")
-            print(f"  Source: {jobs.iloc[0]['api_source']}")
-            print(f"  Is Mock: {jobs.iloc[0]['is_mock_data']}")
-            print(f"  API calls today: {api.api_calls_today}")
+            for i, row in jobs.iterrows():
+                print(f"\n  Job {i+1}:")
+                print(f"  Job Title: {row['job_title']}")
+                print(f"  Company: {row['employer_name']}")
+                print(f"  Source: {row['api_source']}")
+                print(f"  Is Mock: {row['is_mock_data']}")
+            print(f"\n  API calls today: {api.api_calls_today}")
         else:
             print("  ❌ No jobs found!")
     

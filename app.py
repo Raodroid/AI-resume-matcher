@@ -45,6 +45,7 @@ st.markdown("""
         --orange-brand: #f97316;
         --orange-light: rgba(249, 115, 22, 0.1);
         --orange-border: rgba(249, 115, 22, 0.3);
+        --gray-border: rgba(128, 128, 128, 0.4); /* New Gray Border */
         /* Streamlit native variables */
         --card-bg: var(--secondary-background-color); 
         --text-main: var(--text-color);
@@ -73,19 +74,20 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* Job Card Container */
+    /* Job Card Container - GRAY BORDER ADDED */
     .job-card {
         background-color: var(--card-bg);
         border-radius: 24px;
         padding: 3rem;
         margin: 2.5rem 0;
-        border: 1px solid var(--orange-border);
+        border: 1px solid var(--gray-border); /* Distinct Gray Border */
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s;
+        transition: transform 0.2s, border-color 0.2s;
     }
     .job-card:hover {
-        border-color: var(--orange-brand);
+        border-color: var(--orange-brand); /* Turns Orange on Hover */
         transform: translateY(-3px);
+        box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
     }
 
     /* Text & Headers */
@@ -331,19 +333,39 @@ def get_ai_analysis(job_description, job_title, employer_name):
 
 @st.cache_data(show_spinner=False, ttl=3600)
 def generate_cover_letter(resume_text, job_description, job_title, employer_name):
+    """
+    Generates a high-quality, 4-paragraph evidence-based cover letter.
+    """
     if not GROQ_ENABLED: return "⚠️ Enable AI to generate cover letter."
     try:
-        system_prompt = "You are an elite Career Strategist. Write 'Evidence-Based' cover letters."
-        user_prompt = f"""
-        Write a targeted cover letter for the role of "{job_title}" at "{employer_name}".
-        RESUME: {resume_text[:12000]}
-        JOB DESC: {job_description[:12000]}
-        REQUIREMENTS: 
-        1. Format: Standard business letter.
-        2. Header: Include placeholders [Your Name] etc.
-        3. Structure: Hook, Evidence (Problem-Action-Result), Closing.
-        4. Tone: Professional, confident.
+        system_prompt = """
+        You are an elite Career Strategist and Professional Copywriter.
+        Your goal is to write a cover letter that is persuasive, human, and focuses on "Value Fit" and "Motivation".
+        Do NOT be robotic. Do NOT provide conversational filler (e.g. "Here is the letter").
         """
+        
+        user_prompt = f"""
+        Write a high-impact cover letter for the role of "{job_title}" at "{employer_name}".
+        
+        RESUME CONTENT:
+        {resume_text[:15000]}
+        
+        JOB DESCRIPTION:
+        {job_description[:10000]}
+        
+        ### 1. HEADER RULES:
+        * **CLEAN DATA:** Extract the candidate's Name, Email, and Phone from the resume. 
+        * **NO BRACKETS:** Write `Tan Rihao`, NOT `[Tan Rihao]`. Only use brackets if data is missing.
+        * **FIX CASING:** Auto-correct name casing (e.g. `TAN RIHAO` -> `Tan Rihao`).
+        * **NO MARKDOWN LINKS:** Write email as plain text `email@example.com`, NOT `[Email](mailto:...)`.
+        
+        ### 2. CONTENT STRUCTURE (Strictly 3-4 Paragraphs):
+        * **PARAGRAPH 1 (The Introduction):** Introduce yourself by name and your specific degree/university. Explicitly state you are applying for the **{job_title}** role at **{employer_name}**. Show immediate professional confidence.
+        * **PARAGRAPH 2 (The Evidence / Hard Skills):** Connect specific technical achievements from the resume to the core requirements in the JD. Use the "Problem-Action-Result" format. Use numbers if available.
+        * **PARAGRAPH 3 (The Motivation / Why):** Explain *WHY* you want to join **{employer_name}** specifically. Connect your personal career goals or values to the company's mission/industry context found in the JD.
+        * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and call to action (interview request).
+        """
+        
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant", 
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
@@ -362,50 +384,8 @@ if 'resume_uploaded' not in st.session_state: st.session_state.resume_uploaded =
 if 'last_uploaded_file' not in st.session_state: st.session_state.last_uploaded_file = None
 if 'ai_results' not in st.session_state: st.session_state.ai_results = {} 
 if 'cover_letters' not in st.session_state: st.session_state.cover_letters = {}
-if 'welcome_seen' not in st.session_state: st.session_state.welcome_seen = False
 
-# --- 5. WELCOME DIALOG (PROFESSIONAL & DOMINANT) ---
-def show_welcome_content():
-    st.markdown("""
-    <div style="padding-bottom: 1rem;">
-        <h3 style="margin-top: 0; color: #f97316;">System Workflow Initialization</h3>
-        <p style="opacity: 0.8; font-size: 1rem;">Optimize your job search application strategy with AI-driven analytics.</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("""
-        **1. DOCUMENT PARSING** Securely upload and parse PDF/DOCX resumes for extraction.
-        
-        **2. STRATEGIC AGGREGATION** Aggregate high-relevance job listings based on criteria.
-        """)
-    with c2:
-        st.markdown("""
-        **3. AI DEEP ANALYSIS** Execute comprehensive analysis on salary, stack, and culture.
-        
-        **4. TAILORED DRAFTING** Generate evidence-based cover letters matched to requirements.
-        """)
-        
-    st.markdown("---")
-    
-    if st.button("Initialize Session", type="primary", use_container_width=True):
-        st.session_state.welcome_seen = True
-        st.rerun()
-
-# Modal Logic (Safe Check)
-if not st.session_state.welcome_seen:
-    if hasattr(st, "dialog"):
-        @st.dialog("Resume Matcher Pro", width="large")
-        def welcome_modal():
-            show_welcome_content()
-        welcome_modal()
-    else:
-        st.info("System Notification: Update Streamlit for improved UI experience.")
-        with st.expander("System Workflow Guide", expanded=True):
-            show_welcome_content()
-
-# --- 6. MAIN UI LAYOUT ---
+# --- 5. MAIN UI LAYOUT ---
 
 # Top Banner
 st.markdown("""
@@ -417,6 +397,19 @@ st.markdown("""
 
 # Sidebar
 with st.sidebar:
+    # --- QUICK START GUIDE ---
+    with st.expander("🐣 Quick Start Guide", expanded=True):
+        st.markdown("""
+        **1. Upload:** Go to 'Upload Resume' tab.
+        
+        **2. Search:** Find jobs via Sidebar.
+        
+        **3. Analyze:** Click 'Deep Dive' for AI insights.
+        
+        **4. Apply:** Generate Cover Letter & Apply.
+        """)
+    
+    st.markdown("---")
     st.markdown("## 🔍 Search Criteria")
     
     if st.session_state.resume_uploaded:
@@ -445,7 +438,7 @@ with st.sidebar:
                     st.session_state.ai_results = {} 
                     st.session_state.cover_letters = {}
                     matcher = JobMatcher()
-                    st.session_state.matches_df = matcher.match_resume_to_jobs(
+                    matches = matcher.match_resume_to_jobs(
                         st.session_state.resume_text, st.session_state.jobs_df, top_n=10
                     )
                     st.session_state.matches_df = matches
@@ -636,7 +629,7 @@ with matches_tab:
                         st.session_state.cover_letters[job_id] = edited_cl
                         st.rerun()
 
-                st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True)
+                st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
             
             # Footer Buttons
             st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
