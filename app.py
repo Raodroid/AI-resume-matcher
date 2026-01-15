@@ -14,7 +14,7 @@ load_dotenv()
 # Set page config
 st.set_page_config(
     page_title="Resume Matcher Pro",
-    page_icon="🤖",
+    page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -39,7 +39,7 @@ except ImportError as e:
     st.error(f"❌ Failed to import modules: {e}")
     st.stop()
 
-# --- 2. CSS STYLING (ENHANCED UI) ---
+# --- 2. CSS STYLING (PREMIUM UI) ---
 st.markdown("""
 <style>
     /* Main background */
@@ -54,7 +54,7 @@ st.markdown("""
         border-right: 1px solid #334155; 
     }
     
-    /* Job Card Container - MAXIMUM SIZE */
+    /* Job Card Container */
     .job-card {
         background: #1e293b;
         border-radius: 24px;
@@ -131,7 +131,7 @@ st.markdown("""
         color: #60a5fa;
     }
 
-    /* Tech Stack Badges (Code Style) */
+    /* Tech Stack Badges */
     .tech-tag {
         display: inline-block;
         background: #0f172a;
@@ -145,7 +145,7 @@ st.markdown("""
         margin: 0 0.5rem 0.5rem 0;
     }
 
-    /* Soft Skill Badges (Pill Style) */
+    /* Soft Skill Badges */
     .soft-tag {
         display: inline-block;
         background: rgba(16, 185, 129, 0.1);
@@ -166,7 +166,7 @@ st.markdown("""
         margin-top: 1.5rem;
     }
 
-    /* Score Badge - Giant */
+    /* Score Badge */
     .score-badge {
         background: rgba(15, 23, 42, 0.8);
         border: 2px solid #334155;
@@ -189,7 +189,6 @@ st.markdown("""
         gap: 1rem;
         margin-bottom: 2.5rem;
     }
-    
     .meta-badge {
         display: flex;
         align-items: center;
@@ -200,12 +199,37 @@ st.markdown("""
         font-weight: 600;
         border: 1px solid;
     }
-    
     .meta-location { background: rgba(59, 130, 246, 0.1); color: #93c5fd; border-color: rgba(59, 130, 246, 0.3); }
     .meta-type { background: rgba(168, 85, 247, 0.1); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.3); }
     .meta-industry { background: rgba(20, 184, 166, 0.1); color: #5eead4; border-color: rgba(20, 184, 166, 0.3); }
 
-    /* Apply Button - Massive */
+    /* --- COVER LETTER PAPER UI --- */
+    .paper-doc {
+        background-color: #ffffff;
+        color: #1e293b;
+        padding: 3rem;
+        border-radius: 2px;
+        font-family: 'Times New Roman', serif;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        margin-top: 1rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        border: 1px solid #e2e8f0;
+        font-size: 1.05rem;
+    }
+    
+    /* Header inside paper */
+    .paper-header {
+        border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        font-family: 'Arial', sans-serif;
+        color: #334155;
+        font-size: 0.9rem;
+    }
+
+    /* Apply Button */
     .stLinkButton > a {
         background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%) !important;
         color: white !important;
@@ -227,7 +251,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 3. GROQ AI HELPER FUNCTION (SUPER-COMPREHENSIVE) ---
+# --- 3. GROQ AI HELPER FUNCTIONS ---
 
 @st.cache_data(show_spinner=False, ttl=3600)
 def get_ai_analysis(job_description, job_title, employer_name):
@@ -235,69 +259,93 @@ def get_ai_analysis(job_description, job_title, employer_name):
     Uses Groq (Llama 3.1) to extract comprehensive job details.
     """
     if not GROQ_ENABLED:
-        return {"summary": "⚠️ API Key missing. Add GROQ_API_KEY to .env file."}
+        return {"summary": "⚠️ API Key missing."}
     
-    desc_text = str(job_description).strip()
-    if len(desc_text) < 50:
-        return {"summary": "⚠️ Description too short for analysis."}
-    
-    # Clean text
-    desc_text = desc_text.replace("{", "(").replace("}", ")").replace('"', "'")
+    desc_text = str(job_description).strip().replace("{", "(").replace("}", ")").replace('"', "'")
     
     try:
         system_prompt = "You are a Senior Technical Recruiter. Analyze job descriptions deeply."
-        
         user_prompt = f"""
         Analyze this job posting for "{job_title}" at "{employer_name}".
         
         Return a valid JSON object (AND NOTHING ELSE) with these specific keys:
         {{
             "summary": "A rich 3-4 sentence executive summary describing the role's core mission.",
-            "role_intent": "One sentence explaining WHY they are hiring (e.g. 'To scale their cloud infra' or 'Backfill a lead role').",
-            "tech_stack": ["List specific tools, languages, frameworks mentioned (e.g. Python, AWS, React)"],
-            "soft_skills": ["List key personality traits/soft skills (e.g. Leadership, Communication)"],
+            "role_intent": "One sentence explaining WHY they are hiring.",
+            "tech_stack": ["List specific tools, languages, frameworks mentioned"],
+            "soft_skills": ["List key personality traits/soft skills"],
             "key_responsibilities": ["List of 4-5 specific daily duties"],
             "requirements": ["List of 4-5 must-have qualifications"],
-            "education_cert": "Education or Certifications required (e.g. BSCS, AWS Certified)",
+            "education_cert": "Education or Certifications required",
             "remote_policy": "Specifics on remote/hybrid/onsite policy",
-            "salary_benefits": "Salary range and key perks (e.g. $120k, 401k, Unlimited PTO)",
-            "culture_vibe": "Brief description of the team culture or company mission"
+            "salary_benefits": "Salary range and key perks",
+            "culture_vibe": "Brief description of the team culture"
         }}
         
         Job Description:
         {desc_text[:15000]} 
         """
         
-        # Call API - using llama-3.1-8b-instant
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant", 
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             temperature=0.1,
             max_tokens=2000,
         )
         
         response_text = completion.choices[0].message.content
         
-        # Robust Parsing Logic
-        try:
-            start_idx = response_text.find('{')
-            end_idx = response_text.rfind('}')
-            if start_idx != -1 and end_idx != -1:
-                json_str = response_text[start_idx : end_idx + 1]
-                return json.loads(json_str)
-            else:
-                return {"summary": "⚠️ AI output format error (No JSON found)."}
-        except json.JSONDecodeError:
-            return {"summary": "⚠️ AI JSON parsing failed."}
+        start_idx = response_text.find('{')
+        end_idx = response_text.rfind('}')
+        if start_idx != -1 and end_idx != -1:
+            return json.loads(response_text[start_idx : end_idx + 1])
+        return {"summary": "⚠️ AI output format error."}
             
     except Exception as e:
-        error_details = str(e)
-        if hasattr(e, 'response') and e.response:
-            error_details = f"{e.response.status_code} - {e.response.text}"
-        return {"summary": f"⚠️ Groq Error: {error_details[:200]}"}
+        return {"summary": f"⚠️ Groq Error: {str(e)[:200]}"}
+
+@st.cache_data(show_spinner=False, ttl=3600)
+def generate_cover_letter(resume_text, job_description, job_title, employer_name):
+    """
+    Generates a tailored, professional cover letter.
+    """
+    if not GROQ_ENABLED:
+        return "⚠️ Enable AI to generate cover letter."
+        
+    try:
+        system_prompt = """
+        You are an elite Career Strategist. You write "Evidence-Based" cover letters that get interviews.
+        Your style is direct, professional, and persuasive. You do NOT use fluff or generic cliches.
+        """
+        
+        user_prompt = f"""
+        Write a targeted cover letter for the role of "{job_title}" at "{employer_name}".
+        
+        MY RESUME:
+        {resume_text[:12000]}
+        
+        JOB DESCRIPTION:
+        {job_description[:12000]}
+        
+        GUIDELINES:
+        1. **Format:** Standard business letter format.
+        2. **Header:** Include placeholders like [Your Name], [Your Email], [Your Phone] at the top.
+        3. **The Hook:** Start with a strong opening that connects the candidate's specific background to the company's specific mission/need.
+        4. **The Meat:** Two paragraphs connecting specific bullet points from the Resume to key Requirements in the JD. Use the "Problem-Action-Result" framework.
+        5. **Closing:** Confident call to action.
+        6. **Tone:** Professional but human. Avoid "I am writing to apply for...". Start with impact.
+        """
+        
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant", 
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            temperature=0.7,
+            max_tokens=1500,
+        )
+        
+        return completion.choices[0].message.content
+    except Exception as e:
+        return f"⚠️ Error generating letter: {e}"
 
 # --- 4. APP STATE ---
 if 'resume_text' not in st.session_state: st.session_state.resume_text = ""
@@ -306,6 +354,7 @@ if 'matches_df' not in st.session_state: st.session_state.matches_df = pd.DataFr
 if 'resume_uploaded' not in st.session_state: st.session_state.resume_uploaded = False
 if 'last_uploaded_file' not in st.session_state: st.session_state.last_uploaded_file = None
 if 'ai_results' not in st.session_state: st.session_state.ai_results = {} 
+if 'cover_letters' not in st.session_state: st.session_state.cover_letters = {} 
 
 # --- 5. MAIN UI LAYOUT ---
 
@@ -331,7 +380,7 @@ with st.sidebar:
     job_title = st.text_input("Job Title", placeholder="e.g., Software Engineer")
     
     st.markdown("### 📍 Location Preferences")
-    location = st.text_input("City, State, or 'Remote'", placeholder="e.g., Singapore")
+    location = st.text_input("City, State, or 'Remote'", placeholder="e.g., New York, NY")
     
     st.markdown("---")
     
@@ -344,6 +393,7 @@ with st.sidebar:
                 if not jobs.empty:
                     st.session_state.jobs_df = jobs
                     st.session_state.ai_results = {} 
+                    st.session_state.cover_letters = {}
                     
                     matcher = JobMatcher()
                     matches = matcher.match_resume_to_jobs(
@@ -445,7 +495,7 @@ with matches_tab:
             </div>
             """, unsafe_allow_html=True)
             
-            # 3. AI Insights Logic (ON DEMAND)
+            # 3. AI Insights Logic
             ai_data = st.session_state.ai_results.get(job_id)
             
             if ai_data:
@@ -465,7 +515,7 @@ with matches_tab:
                     </div>
                     """, unsafe_allow_html=True)
                     
-                    # Tech Stack (Code Badges)
+                    # Tech Stack
                     tech = ai_data.get('tech_stack', [])
                     if tech:
                         st.markdown(f"<div class='section-title'>💻 Tech Stack</div>", unsafe_allow_html=True)
@@ -474,7 +524,6 @@ with matches_tab:
 
                     # Two Columns: Responsibilities vs Requirements
                     col_left, col_right = st.columns(2)
-                    
                     with col_left:
                         reqs = ai_data.get('key_responsibilities', [])
                         if reqs:
@@ -483,7 +532,6 @@ with matches_tab:
                             <div class='section-title'>📋 Key Responsibilities</div>
                             <ul class='clean-list'>{list_html}</ul>
                             """, unsafe_allow_html=True)
-                    
                     with col_right:
                         must_haves = ai_data.get('requirements', [])
                         if must_haves:
@@ -493,7 +541,7 @@ with matches_tab:
                             <ul class='clean-list'>{list_html}</ul>
                             """, unsafe_allow_html=True)
 
-                    # Education & Soft Skills Row
+                    # Education & Soft Skills
                     st.markdown("<br>", unsafe_allow_html=True)
                     c3, c4 = st.columns(2)
                     with c3:
@@ -525,7 +573,7 @@ with matches_tab:
             else:
                 # --- RENDER ANALYZE BUTTON ---
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button(f"✨ Analyze with AI (Deep Dive)", key=f"ai_btn_{idx}", use_container_width=True):
+                if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
                     if GROQ_ENABLED:
                         with st.spinner("🤖 Deep diving into job details..."):
                             result = get_ai_analysis(job_desc, job_title, employer)
@@ -535,12 +583,64 @@ with matches_tab:
                             else:
                                 st.error("Analysis Failed")
                     else:
-                        st.warning("⚠️ Add GROQ_API_KEY to .env to use this feature.")
+                        st.warning("⚠️ Add GROQ_API_KEY to .env")
 
+            # --- COVER LETTER SECTION (NEW PREMIUM UI) ---
+            
+            # Check if letter exists in session state
+            cl_text = st.session_state.cover_letters.get(job_id)
+            
+            if cl_text:
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown("### 📝 Draft Cover Letter")
+                
+                # Tabs for Preview vs Edit
+                tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
+                
+                with tab_preview:
+                    st.markdown(f"""
+                    <div class='paper-doc'>
+                        <div class='paper-header'>DRAFT DOCUMENT • GENERATED BY AI</div>
+                        {cl_text}
+                    </div>
+                    """, unsafe_allow_html=True)
+                    
+                    # Copy Block (Hidden visually, useful for copy-paste)
+                    st.code(cl_text, language=None)
+                
+                with tab_edit:
+                    edited_cl = st.text_area("Make adjustments here:", value=cl_text, height=400, key=f"edit_cl_{idx}")
+                    if st.button("💾 Save Edits", key=f"save_cl_{idx}"):
+                        st.session_state.cover_letters[job_id] = edited_cl
+                        st.rerun()
+
+                st.download_button(
+                    label="📥 Download as Text File",
+                    data=st.session_state.cover_letters[job_id],
+                    file_name=f"Cover_Letter_{employer}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+            
             # 4. Action Buttons (Footer)
-            st.markdown("<div style='margin-top: 2.5rem;'>", unsafe_allow_html=True)
-            if row.get('job_apply_link'):
-                st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
+            st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
+            col_b1, col_b2 = st.columns([1, 1])
+            
+            with col_b1:
+                # GENERATE BUTTON
+                btn_label = "⚡ Regenerate Cover Letter" if cl_text else "✍️ Draft Cover Letter"
+                if st.button(btn_label, key=f"cl_btn_{idx}", use_container_width=True):
+                    if GROQ_ENABLED:
+                         with st.spinner("✍️ Writing evidence-based letter..."):
+                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title, employer)
+                            st.session_state.cover_letters[job_id] = letter
+                            st.rerun()
+                    else:
+                         st.warning("⚠️ Enable AI to use this.")
+
+            with col_b2:
+                if row.get('job_apply_link'):
+                    st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
             
             st.markdown("</div>", unsafe_allow_html=True) 
             st.markdown("</div>", unsafe_allow_html=True) # End Job Card
