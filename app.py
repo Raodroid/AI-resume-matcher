@@ -8,10 +8,8 @@ from groq import Groq
 
 # --- 1. CONFIGURATION & SETUP ---
 
-# Load environment variables FIRST
 load_dotenv()
 
-# Set page config
 st.set_page_config(
     page_title="Resume Matcher Pro",
     page_icon="⚡",
@@ -39,53 +37,73 @@ except ImportError as e:
     st.error(f"❌ Failed to import modules: {e}")
     st.stop()
 
-# --- 2. CSS STYLING (PREMIUM UI) ---
+# --- 2. CSS STYLING (SYSTEM THEME ADAPTIVE + ORANGE BRANDING) ---
 st.markdown("""
 <style>
-    /* Main background */
-    .stApp { 
-        background-color: #0f172a;
-        color: #f1f5f9;
+    /* CSS Variables for System Adaptability */
+    :root {
+        --orange-brand: #f97316;
+        --orange-light: rgba(249, 115, 22, 0.1);
+        --orange-border: rgba(249, 115, 22, 0.3);
+        /* Streamlit native variables */
+        --card-bg: var(--secondary-background-color); 
+        --text-main: var(--text-color);
     }
-    
-    /* Sidebar */
-    [data-testid="stSidebar"] { 
-        background-color: #1e293b; 
-        border-right: 1px solid #334155; 
+
+    /* Top Banner */
+    .top-banner {
+        text-align: center; 
+        padding: 4rem 0; 
+        background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fbbf24 100%); 
+        border-radius: 0 0 40px 40px; 
+        margin-bottom: 3rem; 
+        box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.4);
     }
-    
+    .top-banner h1 {
+        color: white !important; 
+        margin: 0; 
+        font-size: 4rem; 
+        text-shadow: 0 4px 8px rgba(0,0,0,0.2); 
+        letter-spacing: -1px;
+    }
+    .top-banner p {
+        color: rgba(255,255,255,0.95) !important; 
+        margin-top: 1rem; 
+        font-size: 1.4rem; 
+        font-weight: 500;
+    }
+
     /* Job Card Container */
     .job-card {
-        background: #1e293b;
+        background-color: var(--card-bg);
         border-radius: 24px;
         padding: 3rem;
         margin: 2.5rem 0;
-        border: 1px solid #334155;
-        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+        border: 1px solid var(--orange-border);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         transition: transform 0.2s;
     }
     .job-card:hover {
-        border-color: #3b82f6;
+        border-color: var(--orange-brand);
+        transform: translateY(-3px);
     }
 
-    /* AI Insight Section */
-    .ai-insight-card {
-        background: rgba(15, 23, 42, 0.6); 
-        border-radius: 16px;
-        padding: 2rem;
-        margin-top: 2rem;
-        border: 1px solid #334155;
-        animation: fadeIn 0.5s;
+    /* Text & Headers */
+    .job-title {
+        color: var(--text-main);
+        font-size: 2rem;
+        font-weight: 800;
+        margin: 0;
     }
-    
-    @keyframes fadeIn {
-        from { opacity: 0; }
-        to { opacity: 1; }
+    .company-name {
+        color: var(--text-main);
+        opacity: 0.8;
+        font-size: 1.4rem;
+        font-weight: 500;
+        margin-top: 0.5rem;
     }
-
-    /* Section Headers */
     .section-title {
-        color: #f97316; 
+        color: var(--orange-brand); 
         font-size: 1.1rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
@@ -94,52 +112,45 @@ st.markdown("""
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        border-bottom: 2px solid rgba(249, 115, 22, 0.2);
+        border-bottom: 2px solid var(--orange-border);
         padding-bottom: 0.5rem;
     }
-
-    /* Summary Text */
     .summary-text {
         font-size: 1.1rem;
         line-height: 1.8;
-        color: #e2e8f0;
+        color: var(--text-main);
         margin-bottom: 2rem;
         font-weight: 400;
     }
 
-    /* Clean Bullet List */
-    ul.clean-list {
-        list-style-type: none; 
-        padding: 0;
-        margin: 0;
-    }
-
+    /* Lists */
+    ul.clean-list { list-style-type: none; padding: 0; margin: 0; }
     ul.clean-list li {
         position: relative;
         padding-left: 2rem;
         margin-bottom: 1rem;
-        color: #cbd5e1;
+        color: var(--text-main);
         font-size: 1rem;
         line-height: 1.6;
+        opacity: 0.9;
     }
-
     ul.clean-list li::before {
         content: "🔹"; 
         position: absolute;
         left: 0;
         font-size: 0.9rem;
-        color: #60a5fa;
+        color: var(--orange-brand);
     }
 
     /* Tech Stack Badges */
     .tech-tag {
         display: inline-block;
-        background: #0f172a;
-        color: #60a5fa;
-        border: 1px solid #1e40af;
+        background: var(--card-bg);
+        color: var(--orange-brand);
+        border: 1px solid var(--orange-border);
         padding: 0.5rem 1rem;
         border-radius: 8px;
-        font-family: 'Courier New', monospace;
+        font-family: monospace;
         font-size: 0.9rem;
         font-weight: 700;
         margin: 0 0.5rem 0.5rem 0;
@@ -148,9 +159,9 @@ st.markdown("""
     /* Soft Skill Badges */
     .soft-tag {
         display: inline-block;
-        background: rgba(16, 185, 129, 0.1);
-        color: #34d399;
-        border: 1px solid rgba(16, 185, 129, 0.3);
+        background: var(--orange-light);
+        color: var(--text-main);
+        border: 1px solid var(--orange-border);
         padding: 0.4rem 1rem;
         border-radius: 99px;
         font-size: 0.9rem;
@@ -159,30 +170,41 @@ st.markdown("""
 
     /* Culture/Benefits Box */
     .culture-box {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(30, 58, 138, 0.1) 100%);
-        border: 1px solid rgba(59, 130, 246, 0.2);
+        background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
+        border: 1px solid var(--orange-border);
         border-radius: 12px;
         padding: 1.5rem;
         margin-top: 1.5rem;
     }
 
+    /* AI Insight Section */
+    .ai-insight-card {
+        background: var(--card-bg); 
+        border-radius: 16px;
+        padding: 2rem;
+        margin-top: 2rem;
+        border: 1px solid var(--orange-border);
+        animation: fadeIn 0.5s;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
     /* Score Badge */
     .score-badge {
-        background: rgba(15, 23, 42, 0.8);
-        border: 2px solid #334155;
+        background: var(--card-bg);
+        border: 2px solid;
         border-radius: 20px;
         padding: 1.5rem;
         text-align: center;
         min-width: 120px;
     }
-    .score-val { font-size: 2.8rem; font-weight: 900; line-height: 1; margin-bottom: 0.2rem; }
-    .score-lbl { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; }
+    .score-val { font-size: 2.8rem; font-weight: 900; line-height: 1; margin-bottom: 0.2rem; color: var(--text-main); }
+    .score-lbl { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-main); opacity: 0.7; }
     
-    .high-match { color: #34d399; border-color: #34d399; }
-    .med-match { color: #fbbf24; border-color: #fbbf24; }
-    .low-match { color: #f87171; border-color: #f87171; }
+    .high-match { color: #10b981; border-color: #10b981; }
+    .med-match { color: #f59e0b; border-color: #f59e0b; }
+    .low-match { color: #ef4444; border-color: #ef4444; }
 
-    /* Meta Badges UI */
+    /* Meta Badges */
     .meta-container {
         display: flex;
         flex-wrap: wrap;
@@ -197,13 +219,12 @@ st.markdown("""
         border-radius: 12px;
         font-size: 1rem;
         font-weight: 600;
-        border: 1px solid;
+        background: var(--card-bg);
+        border: 1px solid rgba(128,128,128, 0.2);
+        color: var(--text-main);
     }
-    .meta-location { background: rgba(59, 130, 246, 0.1); color: #93c5fd; border-color: rgba(59, 130, 246, 0.3); }
-    .meta-type { background: rgba(168, 85, 247, 0.1); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.3); }
-    .meta-industry { background: rgba(20, 184, 166, 0.1); color: #5eead4; border-color: rgba(20, 184, 166, 0.3); }
 
-    /* --- COVER LETTER PAPER UI --- */
+    /* Cover Letter Paper UI (Always White) */
     .paper-doc {
         background-color: #ffffff;
         color: #1e293b;
@@ -214,12 +235,10 @@ st.markdown("""
         white-space: pre-wrap;
         margin-top: 1rem;
         margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         border: 1px solid #e2e8f0;
         font-size: 1.05rem;
     }
-    
-    /* Header inside paper */
     .paper-header {
         border-bottom: 1px solid #cbd5e1;
         padding-bottom: 1rem;
@@ -229,9 +248,9 @@ st.markdown("""
         font-size: 0.9rem;
     }
 
-    /* Apply Button */
+    /* Buttons */
     .stLinkButton > a {
-        background: linear-gradient(90deg, #2563eb 0%, #3b82f6 100%) !important;
+        background: linear-gradient(90deg, #ea580c 0%, #f97316 100%) !important;
         color: white !important;
         border-radius: 12px !important;
         padding: 1rem 2rem !important;
@@ -241,12 +260,26 @@ st.markdown("""
         text-decoration: none !important;
         display: block !important;
         border: none !important;
-        box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.4) !important;
+        box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.4) !important;
         transition: transform 0.2s !important;
     }
     .stLinkButton > a:hover {
         transform: translateY(-2px) !important;
-        background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%) !important;
+        background: linear-gradient(90deg, #c2410c 0%, #ea580c 100%) !important;
+    }
+
+    /* --- MOBILE OPTIMIZATIONS --- */
+    @media (max-width: 768px) {
+        .top-banner h1 { font-size: 2.5rem !important; }
+        .job-card { padding: 1.5rem !important; margin: 1.5rem 0 !important; border-radius: 16px !important; }
+        .job-title { font-size: 1.6rem !important; }
+        .score-badge { padding: 0.8rem !important; min-width: 80px !important; margin-top: 1rem; }
+        .score-val { font-size: 2rem !important; }
+        .meta-container { gap: 0.5rem !important; }
+        .meta-badge { padding: 0.5rem 1rem !important; font-size: 0.85rem !important; width: 100%; justify-content: center; }
+        .stButton > button { width: 100% !important; margin-bottom: 0.5rem !important; }
+        .stLinkButton > a { width: 100% !important; text-align: center !important; }
+        .paper-doc { padding: 1.5rem !important; }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -255,11 +288,7 @@ st.markdown("""
 
 @st.cache_data(show_spinner=False, ttl=3600)
 def get_ai_analysis(job_description, job_title, employer_name):
-    """
-    Uses Groq (Llama 3.1) to extract comprehensive job details.
-    """
-    if not GROQ_ENABLED:
-        return {"summary": "⚠️ API Key missing."}
+    if not GROQ_ENABLED: return {"summary": "⚠️ API Key missing."}
     
     desc_text = str(job_description).strip().replace("{", "(").replace("}", ")").replace('"', "'")
     
@@ -270,20 +299,18 @@ def get_ai_analysis(job_description, job_title, employer_name):
         
         Return a valid JSON object (AND NOTHING ELSE) with these specific keys:
         {{
-            "summary": "A rich 3-4 sentence executive summary describing the role's core mission.",
-            "role_intent": "One sentence explaining WHY they are hiring.",
-            "tech_stack": ["List specific tools, languages, frameworks mentioned"],
-            "soft_skills": ["List key personality traits/soft skills"],
-            "key_responsibilities": ["List of 4-5 specific daily duties"],
-            "requirements": ["List of 4-5 must-have qualifications"],
-            "education_cert": "Education or Certifications required",
-            "remote_policy": "Specifics on remote/hybrid/onsite policy",
-            "salary_benefits": "Salary range and key perks",
-            "culture_vibe": "Brief description of the team culture"
+            "summary": "3-4 sentence executive summary.",
+            "role_intent": "Why they are hiring (1 sentence).",
+            "tech_stack": ["List tools/languages"],
+            "soft_skills": ["List soft skills"],
+            "key_responsibilities": ["4-5 daily duties"],
+            "requirements": ["4-5 qualifications"],
+            "education_cert": "Education/Certs",
+            "remote_policy": "Remote/Hybrid status",
+            "salary_benefits": "Salary and perks",
+            "culture_vibe": "Company culture"
         }}
-        
-        Job Description:
-        {desc_text[:15000]} 
+        Job Description: {desc_text[:15000]}
         """
         
         completion = client.chat.completions.create(
@@ -294,58 +321,38 @@ def get_ai_analysis(job_description, job_title, employer_name):
         )
         
         response_text = completion.choices[0].message.content
-        
         start_idx = response_text.find('{')
         end_idx = response_text.rfind('}')
         if start_idx != -1 and end_idx != -1:
             return json.loads(response_text[start_idx : end_idx + 1])
         return {"summary": "⚠️ AI output format error."}
-            
     except Exception as e:
         return {"summary": f"⚠️ Groq Error: {str(e)[:200]}"}
 
 @st.cache_data(show_spinner=False, ttl=3600)
 def generate_cover_letter(resume_text, job_description, job_title, employer_name):
-    """
-    Generates a tailored, professional cover letter.
-    """
-    if not GROQ_ENABLED:
-        return "⚠️ Enable AI to generate cover letter."
-        
+    if not GROQ_ENABLED: return "⚠️ Enable AI to generate cover letter."
     try:
-        system_prompt = """
-        You are an elite Career Strategist. You write "Evidence-Based" cover letters that get interviews.
-        Your style is direct, professional, and persuasive. You do NOT use fluff or generic cliches.
-        """
-        
+        system_prompt = "You are an elite Career Strategist. Write 'Evidence-Based' cover letters."
         user_prompt = f"""
         Write a targeted cover letter for the role of "{job_title}" at "{employer_name}".
-        
-        MY RESUME:
-        {resume_text[:12000]}
-        
-        JOB DESCRIPTION:
-        {job_description[:12000]}
-        
-        GUIDELINES:
-        1. **Format:** Standard business letter format.
-        2. **Header:** Include placeholders like [Your Name], [Your Email], [Your Phone] at the top.
-        3. **The Hook:** Start with a strong opening that connects the candidate's specific background to the company's specific mission/need.
-        4. **The Meat:** Two paragraphs connecting specific bullet points from the Resume to key Requirements in the JD. Use the "Problem-Action-Result" framework.
-        5. **Closing:** Confident call to action.
-        6. **Tone:** Professional but human. Avoid "I am writing to apply for...". Start with impact.
+        RESUME: {resume_text[:12000]}
+        JOB DESC: {job_description[:12000]}
+        REQUIREMENTS: 
+        1. Format: Standard business letter.
+        2. Header: Include placeholders [Your Name] etc.
+        3. Structure: Hook, Evidence (Problem-Action-Result), Closing.
+        4. Tone: Professional, confident.
         """
-        
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant", 
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             temperature=0.7,
             max_tokens=1500,
         )
-        
         return completion.choices[0].message.content
     except Exception as e:
-        return f"⚠️ Error generating letter: {e}"
+        return f"⚠️ Error: {e}"
 
 # --- 4. APP STATE ---
 if 'resume_text' not in st.session_state: st.session_state.resume_text = ""
@@ -354,14 +361,57 @@ if 'matches_df' not in st.session_state: st.session_state.matches_df = pd.DataFr
 if 'resume_uploaded' not in st.session_state: st.session_state.resume_uploaded = False
 if 'last_uploaded_file' not in st.session_state: st.session_state.last_uploaded_file = None
 if 'ai_results' not in st.session_state: st.session_state.ai_results = {} 
-if 'cover_letters' not in st.session_state: st.session_state.cover_letters = {} 
+if 'cover_letters' not in st.session_state: st.session_state.cover_letters = {}
+if 'welcome_seen' not in st.session_state: st.session_state.welcome_seen = False
 
-# --- 5. MAIN UI LAYOUT ---
+# --- 5. WELCOME DIALOG (PROFESSIONAL & DOMINANT) ---
+def show_welcome_content():
+    st.markdown("""
+    <div style="padding-bottom: 1rem;">
+        <h3 style="margin-top: 0; color: #f97316;">System Workflow Initialization</h3>
+        <p style="opacity: 0.8; font-size: 1rem;">Optimize your job search application strategy with AI-driven analytics.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("""
+        **1. DOCUMENT PARSING** Securely upload and parse PDF/DOCX resumes for extraction.
+        
+        **2. STRATEGIC AGGREGATION** Aggregate high-relevance job listings based on criteria.
+        """)
+    with c2:
+        st.markdown("""
+        **3. AI DEEP ANALYSIS** Execute comprehensive analysis on salary, stack, and culture.
+        
+        **4. TAILORED DRAFTING** Generate evidence-based cover letters matched to requirements.
+        """)
+        
+    st.markdown("---")
+    
+    if st.button("Initialize Session", type="primary", use_container_width=True):
+        st.session_state.welcome_seen = True
+        st.rerun()
+
+# Modal Logic (Safe Check)
+if not st.session_state.welcome_seen:
+    if hasattr(st, "dialog"):
+        @st.dialog("Resume Matcher Pro", width="large")
+        def welcome_modal():
+            show_welcome_content()
+        welcome_modal()
+    else:
+        st.info("System Notification: Update Streamlit for improved UI experience.")
+        with st.expander("System Workflow Guide", expanded=True):
+            show_welcome_content()
+
+# --- 6. MAIN UI LAYOUT ---
+
+# Top Banner
 st.markdown("""
-<div style='text-align: center; padding: 4rem 0; background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fbbf24 100%); border-radius: 0 0 40px 40px; margin-bottom: 3rem; box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.4);'>
-    <h1 style='color: white; margin: 0; font-size: 4rem; text-shadow: 0 4px 8px rgba(0,0,0,0.2); letter-spacing: -1px;'>⚡ Resume Matcher Pro</h1>
-    <p style='color: rgba(255,255,255,0.95); margin-top: 1rem; font-size: 1.4rem; font-weight: 500;'>Advanced AI Analysis powered by Llama 3.1</p>
+<div class='top-banner'>
+    <h1>⚡ Resume Matcher Pro</h1>
+    <p>Advanced AI Analysis powered by Llama 3.1</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -394,19 +444,15 @@ with st.sidebar:
                     st.session_state.jobs_df = jobs
                     st.session_state.ai_results = {} 
                     st.session_state.cover_letters = {}
-                    
                     matcher = JobMatcher()
-                    matches = matcher.match_resume_to_jobs(
-                        st.session_state.resume_text,
-                        st.session_state.jobs_df,
-                        top_n=10
+                    st.session_state.matches_df = matcher.match_resume_to_jobs(
+                        st.session_state.resume_text, st.session_state.jobs_df, top_n=10
                     )
                     st.session_state.matches_df = matches
                     st.success(f"✅ Found {len(matches)} matches!")
                 else:
                     st.session_state.matches_df = pd.DataFrame() 
                     st.error("❌ No jobs found. Try a broader search term.")
-                    
             except Exception as e:
                 st.error(f"System Error: {str(e)}")
     
@@ -458,7 +504,7 @@ with matches_tab:
         for idx, row in st.session_state.matches_df.iterrows():
             score = row.get('match_score', 0)
             job_desc = row.get('job_description', '')
-            job_title = row.get('job_title', 'Job')
+            job_title_txt = row.get('job_title', 'Job')
             employer = row.get('employer_name', 'Company')
             location_txt = row.get('location_display', 'Remote')
             job_id = row.get('job_id', f"job_{idx}")
@@ -467,10 +513,10 @@ with matches_tab:
             st.markdown('<div class="job-card">', unsafe_allow_html=True)
             
             # 1. Header Row
-            c1, c2 = st.columns([4, 1])
+            c1, c2 = st.columns([3, 1])
             with c1:
-                st.markdown(f"<h1 style='color:#f8fafc; margin:0; font-size:2rem; font-weight:800;'>{job_title}</h1>", unsafe_allow_html=True)
-                st.markdown(f"<div style='color:#94a3b8; font-size:1.4rem; margin-top:0.5rem; font-weight:500;'>🏢 {employer}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='job-title'>{job_title_txt}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='company-name'>🏢 {employer}</div>", unsafe_allow_html=True)
             
             with c2:
                 s_class = "high-match" if score >= 75 else "med-match" if score >= 50 else "low-match"
@@ -484,14 +530,11 @@ with matches_tab:
             st.markdown("<br>", unsafe_allow_html=True)
 
             # 2. Meta Badges
-            j_type = row.get('job_employment_type', 'Full-time')
-            j_ind = row.get('industry', 'Technology')
-            
             st.markdown(f"""
             <div class='meta-container'>
-                <div class='meta-badge meta-location'>📍 {location_txt}</div>
-                <div class='meta-badge meta-type'>💼 {j_type}</div>
-                <div class='meta-badge meta-industry'>🏭 {j_ind}</div>
+                <div class='meta-badge'>📍 {location_txt}</div>
+                <div class='meta-badge'>💼 {row.get('job_employment_type', 'Full-time')}</div>
+                <div class='meta-badge'>🏭 {row.get('industry', 'Tech')}</div>
             </div>
             """, unsafe_allow_html=True)
             
@@ -499,13 +542,12 @@ with matches_tab:
             ai_data = st.session_state.ai_results.get(job_id)
             
             if ai_data:
-                # --- RENDER AI RESULTS ---
                 st.markdown('<div class="ai-insight-card">', unsafe_allow_html=True)
                 
                 if "⚠️" in ai_data.get('summary', ''):
                      st.markdown(f"<div class='summary-text' style='color:#fca5a5;'>{ai_data.get('summary')}</div>", unsafe_allow_html=True)
                 else:
-                    # Executive Summary & Role Intent
+                    # Executive Summary
                     st.markdown(f"""
                     <div class='section-title'>📝 Executive Summary</div>
                     <div class='summary-text'>
@@ -522,31 +564,25 @@ with matches_tab:
                         tech_html = "".join([f"<span class='tech-tag'>{t}</span>" for t in tech])
                         st.markdown(f"<div style='margin-bottom:2rem;'>{tech_html}</div>", unsafe_allow_html=True)
 
-                    # Two Columns: Responsibilities vs Requirements
+                    # Columns: Responsibilities vs Requirements
                     col_left, col_right = st.columns(2)
                     with col_left:
                         reqs = ai_data.get('key_responsibilities', [])
                         if reqs:
                             list_html = "".join([f"<li>{r}</li>" for r in reqs]) 
-                            st.markdown(f"""
-                            <div class='section-title'>📋 Key Responsibilities</div>
-                            <ul class='clean-list'>{list_html}</ul>
-                            """, unsafe_allow_html=True)
+                            st.markdown(f"<div class='section-title'>📋 Responsibilities</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
                     with col_right:
                         must_haves = ai_data.get('requirements', [])
                         if must_haves:
                             list_html = "".join([f"<li>{r}</li>" for r in must_haves]) 
-                            st.markdown(f"""
-                            <div class='section-title'>✅ Must-Have Requirements</div>
-                            <ul class='clean-list'>{list_html}</ul>
-                            """, unsafe_allow_html=True)
+                            st.markdown(f"<div class='section-title'>✅ Requirements</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
 
                     # Education & Soft Skills
                     st.markdown("<br>", unsafe_allow_html=True)
                     c3, c4 = st.columns(2)
                     with c3:
                         ed = ai_data.get('education_cert', 'Not specified')
-                        st.markdown(f"<div class='section-title'>🎓 Education & Certs</div><div style='color:#cbd5e1;'>{ed}</div>", unsafe_allow_html=True)
+                        st.markdown(f"<div class='section-title'>🎓 Education</div><div style='color:var(--text-main); opacity:0.8;'>{ed}</div>", unsafe_allow_html=True)
                     with c4:
                         soft = ai_data.get('soft_skills', [])
                         if soft:
@@ -557,12 +593,12 @@ with matches_tab:
                     # Culture & Benefits Box
                     st.markdown(f"""
                     <div class='culture-box'>
-                        <div class='section-title' style='color:#60a5fa; border-color:#60a5fa;'>🎁 Compensation, Benefits & Culture</div>
-                        <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:#e2e8f0;'>
-                            <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'Not specified')}</div>
-                            <div><strong>🏠 Remote Policy:</strong> {ai_data.get('remote_policy', 'Not specified')}</div>
+                        <div class='section-title' style='color:#f97316; border-color:#f97316;'>🎁 Benefits & Culture</div>
+                        <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
+                            <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
+                            <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>
                         </div>
-                        <div style='margin-top:1rem; color:#94a3b8; font-style:italic;'>
+                        <div style='margin-top:1rem; opacity:0.8; font-style:italic;'>
                             "{ai_data.get('culture_vibe', 'Standard corporate culture.')}"
                         </div>
                     </div>
@@ -571,12 +607,11 @@ with matches_tab:
                 st.markdown('</div>', unsafe_allow_html=True)
                 
             else:
-                # --- RENDER ANALYZE BUTTON ---
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
                     if GROQ_ENABLED:
                         with st.spinner("🤖 Deep diving into job details..."):
-                            result = get_ai_analysis(job_desc, job_title, employer)
+                            result = get_ai_analysis(job_desc, job_title_txt, employer)
                             if result:
                                 st.session_state.ai_results[job_id] = result
                                 st.rerun()
@@ -585,66 +620,43 @@ with matches_tab:
                     else:
                         st.warning("⚠️ Add GROQ_API_KEY to .env")
 
-            # --- COVER LETTER SECTION (NEW PREMIUM UI) ---
-            
-            # Check if letter exists in session state
+            # --- COVER LETTER SECTION ---
             cl_text = st.session_state.cover_letters.get(job_id)
-            
             if cl_text:
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown("### 📝 Draft Cover Letter")
-                
-                # Tabs for Preview vs Edit
                 tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
                 
                 with tab_preview:
-                    st.markdown(f"""
-                    <div class='paper-doc'>
-                        <div class='paper-header'>DRAFT DOCUMENT • GENERATED BY AI</div>
-                        {cl_text}
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Copy Block (Hidden visually, useful for copy-paste)
-                    st.code(cl_text, language=None)
+                    st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT DOCUMENT</div>{cl_text}</div>", unsafe_allow_html=True)
                 
                 with tab_edit:
-                    edited_cl = st.text_area("Make adjustments here:", value=cl_text, height=400, key=f"edit_cl_{idx}")
+                    edited_cl = st.text_area("Edit:", value=cl_text, height=400, key=f"edit_cl_{idx}")
                     if st.button("💾 Save Edits", key=f"save_cl_{idx}"):
                         st.session_state.cover_letters[job_id] = edited_cl
                         st.rerun()
 
-                st.download_button(
-                    label="📥 Download as Text File",
-                    data=st.session_state.cover_letters[job_id],
-                    file_name=f"Cover_Letter_{employer}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
+                st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True)
             
-            # 4. Action Buttons (Footer)
+            # Footer Buttons
             st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
             col_b1, col_b2 = st.columns([1, 1])
-            
             with col_b1:
-                # GENERATE BUTTON
-                btn_label = "⚡ Regenerate Cover Letter" if cl_text else "✍️ Draft Cover Letter"
-                if st.button(btn_label, key=f"cl_btn_{idx}", use_container_width=True):
+                lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
+                if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
                     if GROQ_ENABLED:
                          with st.spinner("✍️ Writing evidence-based letter..."):
-                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title, employer)
+                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
                             st.session_state.cover_letters[job_id] = letter
                             st.rerun()
                     else:
                          st.warning("⚠️ Enable AI to use this.")
-
             with col_b2:
                 if row.get('job_apply_link'):
                     st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
             
-            st.markdown("</div>", unsafe_allow_html=True) 
-            st.markdown("</div>", unsafe_allow_html=True) # End Job Card
+            st.markdown("</div></div>", unsafe_allow_html=True) # End Job Card
 
 # Footer
 st.markdown("---")
-st.markdown("<div style='text-align: center; color: #6b7280;'>Resume Matcher • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; opacity: 0.7;'>Resume Matcher • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
