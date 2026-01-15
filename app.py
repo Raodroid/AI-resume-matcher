@@ -14,7 +14,7 @@ st.set_page_config(
     page_title="Resume Matcher Pro",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed" # Collapsed by default for a cleaner center focus
 )
 
 # Configure Groq Client
@@ -72,6 +72,29 @@ st.markdown("""
         margin-top: 1rem; 
         font-size: 1.4rem; 
         font-weight: 500;
+    }
+
+    /* Step Headers */
+    .step-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--text-main);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .step-number {
+        background: var(--orange-brand);
+        color: white;
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        font-weight: 800;
     }
 
     /* Job Card Container - Gray Border Default */
@@ -373,17 +396,30 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         JOB DESCRIPTION:
         {job_description[:10000]}
         
-        ### 1. HEADER RULES:
-        * **CLEAN DATA:** Extract the candidate's Name, Email, and Phone from the resume. 
-        * **NO BRACKETS:** Write `Tan Rihao`, NOT `[Tan Rihao]`. Only use brackets if data is missing.
-        * **FIX CASING:** Auto-correct name casing (e.g. `TAN RIHAO` -> `Tan Rihao`).
-        * **NO MARKDOWN LINKS:** Write email as plain text `email@example.com`, NOT `[Email](mailto:...)`.
+        ### 1. HEADER FORMAT (Strictly Follow This):
         
-        ### 2. CONTENT STRUCTURE (Strictly 4 Paragraphs):
-        * **PARAGRAPH 1 (The Hook):** Introduce yourself by name and your specific degree/university. Explicitly state you are applying for the **{job_title}** role at **{employer_name}**. Mention specifically why you admire the company (based on JD).
-        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume that directly prove you can solve their key requirements. Use numbers/metrics if available.
-        * **PARAGRAPH 3 (The Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect your personal values to the company's mission found in the JD.
+        [Candidate Name]
+        [Candidate Email] | [Candidate Phone]
+        
+        [Current Date]
+        
+        {employer_name}
+        [Company Address or "Headquarters"]
+        
+        Dear Hiring Manager,
+        
+        ### 2. CRITICAL RULES:
+        * **EXTRACT REAL DATA:** Use the Name, Phone, and Email found in the resume content. Do NOT use placeholders like "[Your Name]" unless the data is completely missing.
+        * **NO "JOHN":** Never invent a name. If name is missing, use "[Your Name]".
+        * **FIX CASING:** Auto-correct names to Title Case (e.g. "TAN RIHAO" -> "Tan Rihao").
+        * **NO MARKDOWN LINKS:** Write email as plain text (e.g. email@example.com).
+        
+        ### 3. BODY STRUCTURE (Strictly 4 Paragraphs):
+        * **PARAGRAPH 1 (The Hook):** Introduce yourself by name and degree/university. State you are applying for **{job_title}** at **{employer_name}**. Mention why you admire the company (based on JD).
+        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume that directly prove you can solve their key requirements. Use numbers.
+        * **PARAGRAPH 3 (Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect personal values to company mission.
         * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and include a confident call to action for an interview.
+        * **SIGN-OFF:** End with "Sincerely," followed by a newline and the [Candidate Name].
         """
         
         completion = client.chat.completions.create(
@@ -405,7 +441,7 @@ if 'last_uploaded_file' not in st.session_state: st.session_state.last_uploaded_
 if 'ai_results' not in st.session_state: st.session_state.ai_results = {} 
 if 'cover_letters' not in st.session_state: st.session_state.cover_letters = {}
 
-# --- 5. MAIN UI LAYOUT ---
+# --- 5. MAIN UI LAYOUT (WIZARD STYLE) ---
 
 # Top Banner
 st.markdown("""
@@ -415,83 +451,35 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar
+# Sidebar (Only for Reset & Quick Guide now)
 with st.sidebar:
-    # --- QUICK START GUIDE ---
     with st.expander("🐣 Quick Start Guide", expanded=True):
         st.markdown("""
-        **1. Upload:** Go to 'Upload Resume' tab.
+        **1. Upload:** Upload resume in Step 1.
         
-        **2. Search:** Find jobs via Sidebar.
+        **2. Search:** Enter Job & Location in Step 2.
         
-        **3. Analyze:** Click 'Deep Dive' for AI insights.
-        
-        **4. Apply:** Generate Cover Letter & Apply.
+        **3. Results:** View matches, Deep Dive, and Apply below.
         """)
     
     st.markdown("---")
-    st.markdown("## 🔍 Search Criteria")
     
     if st.session_state.resume_uploaded:
-        st.success("✅ Resume Loaded")
-    else:
-        st.warning("📄 Upload Resume Required")
-    
-    st.markdown("---")
-    
-    st.markdown("### 💼 Job Details")
-    job_title = st.text_input("Job Title", placeholder="e.g., Software Engineer")
-    
-    st.markdown("### 📍 Location Preferences")
-    location = st.text_input("City, State, or 'Remote'", placeholder="e.g., New York, NY")
-    
-    st.markdown("---")
-    
-    if st.button("🚀 Search & Match Jobs", type="primary", disabled=not st.session_state.resume_uploaded):
-        with st.spinner("Searching & Matching..."):
-            try:
-                api = JobSearchAPI()
-                jobs = api.search_jobs(query=job_title, location=location, num_pages=1)
-                
-                if not jobs.empty:
-                    st.session_state.jobs_df = jobs
-                    st.session_state.ai_results = {} 
-                    st.session_state.cover_letters = {}
-                    matcher = JobMatcher()
-                    matches = matcher.match_resume_to_jobs(
-                        st.session_state.resume_text, st.session_state.jobs_df, top_n=10
-                    )
-                    st.session_state.matches_df = matches
-                    st.success(f"✅ Found {len(matches)} matches!")
-                else:
-                    st.session_state.matches_df = pd.DataFrame() 
-                    st.error("❌ No jobs found. Try a broader search term.")
-            except Exception as e:
-                st.error(f"System Error: {str(e)}")
-    
-    if st.session_state.resume_uploaded:
-        st.markdown("---")
-        if st.button("🗑️ Clear Resume"):
+        if st.button("🗑️ Reset / New Resume"):
             st.session_state.resume_text = ""
             st.session_state.resume_uploaded = False
             st.session_state.matches_df = pd.DataFrame()
+            st.session_state.jobs_df = pd.DataFrame()
             st.rerun()
 
-# Logic to determine active tab
-if not st.session_state.matches_df.empty:
-    tab1, tab2 = st.tabs(["🎯 Matches", "📄 Upload"])
-    matches_tab = tab1; upload_tab = tab2
-else:
-    tab1, tab2 = st.tabs(["📄 Upload", "🎯 Matches"])
-    matches_tab = tab2; upload_tab = tab1
+# --- STEP 1: UPLOAD RESUME ---
+st.markdown('<div class="step-header"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
 
-# --- UPLOAD TAB ---
-with upload_tab:
-    st.markdown("### 📤 Upload Resume")
-    uploaded_file = st.file_uploader("PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
+if not st.session_state.resume_uploaded:
+    uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
     
     if uploaded_file and (st.session_state.last_uploaded_file != uploaded_file.name):
-        with st.spinner("Parsing..."):
+        with st.spinner("Parsing resume..."):
             try:
                 if uploaded_file.name.endswith('.pdf'):
                     text = extract_text_from_pdf(uploaded_file)
@@ -502,173 +490,218 @@ with upload_tab:
                     st.session_state.resume_text = clean_text(text)
                     st.session_state.resume_uploaded = True
                     st.session_state.last_uploaded_file = uploaded_file.name
-                    st.success("✅ Uploaded!")
                     st.rerun()
                 else:
                     st.error("❌ File empty or unreadable.")
             except Exception as e:
                 st.error(f"Error: {e}")
+else:
+    # Collapsed view after upload
+    with st.expander("✅ Resume Uploaded (Click to change)", expanded=False):
+        st.success("Resume is loaded and ready for matching.")
+        if st.button("Upload Different Resume"):
+            st.session_state.resume_uploaded = False
+            st.rerun()
 
-# --- MATCHES TAB ---
-with matches_tab:
-    if st.session_state.matches_df.empty:
-        st.info("Upload resume and search for jobs to see results.")
-    else:
-        for idx, row in st.session_state.matches_df.iterrows():
-            score = row.get('match_score', 0)
-            job_desc = row.get('job_description', '')
-            job_title_txt = row.get('job_title', 'Job')
-            employer = row.get('employer_name', 'Company')
-            location_txt = row.get('location_display', 'Remote')
-            job_id = row.get('job_id', f"job_{idx}")
+# --- STEP 2: SEARCH JOBS ---
+if st.session_state.resume_uploaded:
+    st.markdown("---")
+    st.markdown('<div class="step-header"><div class="step-number">2</div> Find Your Dream Job</div>', unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns([2, 2, 1])
+    
+    with col1:
+        job_title = st.text_input("Job Title", placeholder="e.g. Software Engineer")
+    with col2:
+        location = st.text_input("Location", placeholder="e.g. Singapore, Remote")
+    with col3:
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True) # Spacer
+        search_btn = st.button("🚀 Find Matches", use_container_width=True, type="primary")
+
+    if search_btn:
+        with st.spinner("🔍 Searching major job boards & Matching skills..."):
+            try:
+                api = JobSearchAPI()
+                jobs = api.search_jobs(query=job_title, location=location, num_pages=1)
+                
+                if not jobs.empty:
+                    st.session_state.jobs_df = jobs
+                    st.session_state.ai_results = {} 
+                    st.session_state.cover_letters = {}
+                    matcher = JobMatcher()
+                    # Assign to variable before session state
+                    matches = matcher.match_resume_to_jobs(
+                        st.session_state.resume_text, st.session_state.jobs_df, top_n=10
+                    )
+                    st.session_state.matches_df = matches
+                else:
+                    st.session_state.matches_df = pd.DataFrame() 
+                    st.error("❌ No jobs found. Try a broader search term.")
+            except Exception as e:
+                st.error(f"System Error: {str(e)}")
+
+# --- STEP 3: MATCHED RESULTS ---
+if not st.session_state.matches_df.empty:
+    st.markdown("---")
+    st.markdown('<div class="step-header"><div class="step-number">3</div> Matched Roles</div>', unsafe_allow_html=True)
+    
+    st.success(f"🎉 Found {len(st.session_state.matches_df)} jobs matching your resume!")
+
+    for idx, row in st.session_state.matches_df.iterrows():
+        score = row.get('match_score', 0)
+        job_desc = row.get('job_description', '')
+        job_title_txt = row.get('job_title', 'Job')
+        employer = row.get('employer_name', 'Company')
+        location_txt = row.get('location_display', 'Remote')
+        job_id = row.get('job_id', f"job_{idx}")
+        
+        # --- RENDER JOB CARD ---
+        st.markdown('<div class="job-card">', unsafe_allow_html=True)
+        
+        # 1. Header Row
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.markdown(f"<div class='job-title'>{job_title_txt}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='company-name'>🏢 {employer}</div>", unsafe_allow_html=True)
+        
+        with c2:
+            s_class = "high-match" if score >= 75 else "med-match" if score >= 50 else "low-match"
+            st.markdown(f"""
+            <div class='score-badge {s_class}'>
+                <div class='score-val'>{score:.0f}%</div>
+                <div class='score-lbl'>Match</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+
+        # 2. Meta Badges
+        st.markdown(f"""
+        <div class='meta-container'>
+            <div class='meta-badge'>📍 {location_txt}</div>
+            <div class='meta-badge'>💼 {row.get('job_employment_type', 'Full-time')}</div>
+            <div class='meta-badge'>🏭 {row.get('industry', 'Tech')}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # 3. AI Insights Logic
+        ai_data = st.session_state.ai_results.get(job_id)
+        
+        if ai_data:
+            st.markdown('<div class="ai-insight-card">', unsafe_allow_html=True)
             
-            # --- RENDER JOB CARD ---
-            st.markdown('<div class="job-card">', unsafe_allow_html=True)
-            
-            # 1. Header Row
-            c1, c2 = st.columns([3, 1])
-            with c1:
-                st.markdown(f"<div class='job-title'>{job_title_txt}</div>", unsafe_allow_html=True)
-                st.markdown(f"<div class='company-name'>🏢 {employer}</div>", unsafe_allow_html=True)
-            
-            with c2:
-                s_class = "high-match" if score >= 75 else "med-match" if score >= 50 else "low-match"
+            if "⚠️" in ai_data.get('summary', ''):
+                    st.markdown(f"<div class='summary-text' style='color:#fca5a5;'>{ai_data.get('summary')}</div>", unsafe_allow_html=True)
+            else:
+                # Executive Summary
                 st.markdown(f"""
-                <div class='score-badge {s_class}'>
-                    <div class='score-val'>{score:.0f}%</div>
-                    <div class='score-lbl'>Match</div>
+                <div class='section-title'>📝 Executive Summary</div>
+                <div class='summary-text'>
+                    {ai_data.get('summary')}
+                    <br><br>
+                    <em>🎯 <strong>Why this role?</strong> {ai_data.get('role_intent')}</em>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Tech Stack
+                tech = ai_data.get('tech_stack', [])
+                if tech:
+                    st.markdown(f"<div class='section-title'>💻 Tech Stack</div>", unsafe_allow_html=True)
+                    tech_html = "".join([f"<span class='tech-tag'>{t}</span>" for t in tech])
+                    st.markdown(f"<div style='margin-bottom:2rem;'>{tech_html}</div>", unsafe_allow_html=True)
+
+                # Columns: Responsibilities vs Requirements
+                col_left, col_right = st.columns(2)
+                with col_left:
+                    reqs = ai_data.get('key_responsibilities', [])
+                    if reqs:
+                        list_html = "".join([f"<li>{r}</li>" for r in reqs]) 
+                        st.markdown(f"<div class='section-title'>📋 Responsibilities</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
+                with col_right:
+                    must_haves = ai_data.get('requirements', [])
+                    if must_haves:
+                        list_html = "".join([f"<li>{r}</li>" for r in must_haves]) 
+                        st.markdown(f"<div class='section-title'>✅ Requirements</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
+
+                # Education & Soft Skills
+                st.markdown("<br>", unsafe_allow_html=True)
+                c3, c4 = st.columns(2)
+                with c3:
+                    ed = ai_data.get('education_cert', 'Not specified')
+                    st.markdown(f"<div class='section-title'>🎓 Education</div><div style='color:var(--text-main); opacity:0.8;'>{ed}</div>", unsafe_allow_html=True)
+                with c4:
+                    soft = ai_data.get('soft_skills', [])
+                    if soft:
+                        st.markdown(f"<div class='section-title'>🤝 Soft Skills</div>", unsafe_allow_html=True)
+                        soft_html = "".join([f"<span class='soft-tag'>{s}</span>" for s in soft])
+                        st.markdown(f"<div>{soft_html}</div>", unsafe_allow_html=True)
+
+                # Culture & Benefits Box
+                st.markdown(f"""
+                <div class='culture-box'>
+                    <div class='section-title' style='color:#f97316; border-color:#f97316;'>🎁 Benefits & Culture</div>
+                    <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
+                        <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
+                        <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>
+                    </div>
+                    <div style='margin-top:1rem; opacity:0.8; font-style:italic;'>
+                        "{ai_data.get('culture_vibe', 'Standard corporate culture.')}"
+                    </div>
                 </div>
                 """, unsafe_allow_html=True)
             
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+        else:
             st.markdown("<br>", unsafe_allow_html=True)
-
-            # 2. Meta Badges
-            st.markdown(f"""
-            <div class='meta-container'>
-                <div class='meta-badge'>📍 {location_txt}</div>
-                <div class='meta-badge'>💼 {row.get('job_employment_type', 'Full-time')}</div>
-                <div class='meta-badge'>🏭 {row.get('industry', 'Tech')}</div>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # 3. AI Insights Logic
-            ai_data = st.session_state.ai_results.get(job_id)
-            
-            if ai_data:
-                st.markdown('<div class="ai-insight-card">', unsafe_allow_html=True)
-                
-                if "⚠️" in ai_data.get('summary', ''):
-                     st.markdown(f"<div class='summary-text' style='color:#fca5a5;'>{ai_data.get('summary')}</div>", unsafe_allow_html=True)
-                else:
-                    # Executive Summary
-                    st.markdown(f"""
-                    <div class='section-title'>📝 Executive Summary</div>
-                    <div class='summary-text'>
-                        {ai_data.get('summary')}
-                        <br><br>
-                        <em>🎯 <strong>Why this role?</strong> {ai_data.get('role_intent')}</em>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Tech Stack
-                    tech = ai_data.get('tech_stack', [])
-                    if tech:
-                        st.markdown(f"<div class='section-title'>💻 Tech Stack</div>", unsafe_allow_html=True)
-                        tech_html = "".join([f"<span class='tech-tag'>{t}</span>" for t in tech])
-                        st.markdown(f"<div style='margin-bottom:2rem;'>{tech_html}</div>", unsafe_allow_html=True)
-
-                    # Columns: Responsibilities vs Requirements
-                    col_left, col_right = st.columns(2)
-                    with col_left:
-                        reqs = ai_data.get('key_responsibilities', [])
-                        if reqs:
-                            list_html = "".join([f"<li>{r}</li>" for r in reqs]) 
-                            st.markdown(f"<div class='section-title'>📋 Responsibilities</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
-                    with col_right:
-                        must_haves = ai_data.get('requirements', [])
-                        if must_haves:
-                            list_html = "".join([f"<li>{r}</li>" for r in must_haves]) 
-                            st.markdown(f"<div class='section-title'>✅ Requirements</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
-
-                    # Education & Soft Skills
-                    st.markdown("<br>", unsafe_allow_html=True)
-                    c3, c4 = st.columns(2)
-                    with c3:
-                        ed = ai_data.get('education_cert', 'Not specified')
-                        st.markdown(f"<div class='section-title'>🎓 Education</div><div style='color:var(--text-main); opacity:0.8;'>{ed}</div>", unsafe_allow_html=True)
-                    with c4:
-                        soft = ai_data.get('soft_skills', [])
-                        if soft:
-                            st.markdown(f"<div class='section-title'>🤝 Soft Skills</div>", unsafe_allow_html=True)
-                            soft_html = "".join([f"<span class='soft-tag'>{s}</span>" for s in soft])
-                            st.markdown(f"<div>{soft_html}</div>", unsafe_allow_html=True)
-
-                    # Culture & Benefits Box
-                    st.markdown(f"""
-                    <div class='culture-box'>
-                        <div class='section-title' style='color:#f97316; border-color:#f97316;'>🎁 Benefits & Culture</div>
-                        <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
-                            <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
-                            <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>
-                        </div>
-                        <div style='margin-top:1rem; opacity:0.8; font-style:italic;'>
-                            "{ai_data.get('culture_vibe', 'Standard corporate culture.')}"
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-            else:
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
-                    if GROQ_ENABLED:
-                        with st.spinner("🤖 Deep diving into job details..."):
-                            result = get_ai_analysis(job_desc, job_title_txt, employer)
-                            if result:
-                                st.session_state.ai_results[job_id] = result
-                                st.rerun()
-                            else:
-                                st.error("Analysis Failed")
-                    else:
-                        st.warning("⚠️ Add GROQ_API_KEY to .env")
-
-            # --- COVER LETTER SECTION ---
-            cl_text = st.session_state.cover_letters.get(job_id)
-            if cl_text:
-                st.markdown("<br>", unsafe_allow_html=True)
-                st.markdown("### 📝 Draft Cover Letter")
-                tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
-                
-                with tab_preview:
-                    st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT DOCUMENT</div>{cl_text}</div>", unsafe_allow_html=True)
-                
-                with tab_edit:
-                    edited_cl = st.text_area("Edit:", value=cl_text, height=400, key=f"edit_cl_{idx}")
-                    if st.button("💾 Save Edits", key=f"save_cl_{idx}"):
-                        st.session_state.cover_letters[job_id] = edited_cl
-                        st.rerun()
-
-                st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
-            
-            # Footer Buttons
-            st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
-            col_b1, col_b2 = st.columns([1, 1])
-            with col_b1:
-                lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
-                if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
-                    if GROQ_ENABLED:
-                         with st.spinner("✍️ Writing evidence-based letter..."):
-                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
-                            st.session_state.cover_letters[job_id] = letter
+            if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
+                if GROQ_ENABLED:
+                    with st.spinner("🤖 Deep diving into job details..."):
+                        result = get_ai_analysis(job_desc, job_title_txt, employer)
+                        if result:
+                            st.session_state.ai_results[job_id] = result
                             st.rerun()
-                    else:
-                         st.warning("⚠️ Enable AI to use this.")
-            with col_b2:
-                if row.get('job_apply_link'):
-                    st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
+                        else:
+                            st.error("Analysis Failed")
+                else:
+                    st.warning("⚠️ Add GROQ_API_KEY to .env")
+
+        # --- COVER LETTER SECTION ---
+        cl_text = st.session_state.cover_letters.get(job_id)
+        if cl_text:
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("### 📝 Draft Cover Letter")
+            tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
             
-            st.markdown("</div></div>", unsafe_allow_html=True) # End Job Card
+            with tab_preview:
+                st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT DOCUMENT</div>{cl_text}</div>", unsafe_allow_html=True)
+            
+            with tab_edit:
+                edited_cl = st.text_area("Edit:", value=cl_text, height=400, key=f"edit_cl_{idx}")
+                if st.button("💾 Save Edits", key=f"save_cl_{idx}"):
+                    st.session_state.cover_letters[job_id] = edited_cl
+                    st.rerun()
+
+            st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
+        
+        # Footer Buttons
+        st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
+        col_b1, col_b2 = st.columns([1, 1])
+        with col_b1:
+            lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
+            if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
+                if GROQ_ENABLED:
+                        with st.spinner("✍️ Writing evidence-based letter..."):
+                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
+                        st.session_state.cover_letters[job_id] = letter
+                        st.rerun()
+                else:
+                        st.warning("⚠️ Enable AI to use this.")
+        with col_b2:
+            if row.get('job_apply_link'):
+                st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
+        
+        st.markdown("</div></div>", unsafe_allow_html=True) # End Job Card
 
 # Footer
 st.markdown("---")
