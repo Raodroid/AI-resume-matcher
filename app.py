@@ -37,7 +37,7 @@ except ImportError as e:
     st.error(f"❌ Failed to import modules: {e}")
     st.stop()
 
-# --- 2. CSS STYLING (SYSTEM THEME ADAPTIVE + ORANGE BRANDING) ---
+# --- 2. CSS STYLING (SYSTEM THEME + ENHANCED BUTTONS) ---
 st.markdown("""
 <style>
     /* CSS Variables for System Adaptability */
@@ -45,7 +45,7 @@ st.markdown("""
         --orange-brand: #f97316;
         --orange-light: rgba(249, 115, 22, 0.1);
         --orange-border: rgba(249, 115, 22, 0.3);
-        --gray-border: rgba(128, 128, 128, 0.4); /* New Gray Border */
+        --gray-border: rgba(128, 128, 128, 0.3);
         /* Streamlit native variables */
         --card-bg: var(--secondary-background-color); 
         --text-main: var(--text-color);
@@ -74,20 +74,20 @@ st.markdown("""
         font-weight: 500;
     }
 
-    /* Job Card Container - GRAY BORDER ADDED */
+    /* Job Card Container - Gray Border Default */
     .job-card {
         background-color: var(--card-bg);
         border-radius: 24px;
         padding: 3rem;
         margin: 2.5rem 0;
-        border: 1px solid var(--gray-border); /* Distinct Gray Border */
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s, border-color 0.2s;
+        border: 1px solid var(--gray-border); /* Neutral gray border */
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
     }
     .job-card:hover {
-        border-color: var(--orange-brand); /* Turns Orange on Hover */
+        border-color: var(--orange-brand); /* Orange pop on hover */
         transform: translateY(-3px);
-        box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1);
+        box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.1);
     }
 
     /* Text & Headers */
@@ -206,7 +206,7 @@ st.markdown("""
     .med-match { color: #f59e0b; border-color: #f59e0b; }
     .low-match { color: #ef4444; border-color: #ef4444; }
 
-    /* Meta Badges */
+    /* Meta Badges (Static Information) */
     .meta-container {
         display: flex;
         flex-wrap: wrap;
@@ -217,16 +217,17 @@ st.markdown("""
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.7rem 1.4rem;
-        border-radius: 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        background: var(--card-bg);
+        padding: 0.6rem 1.2rem;
+        border-radius: 50px; /* More rounded/pill shape */
+        font-size: 0.95rem;
+        font-weight: 500;
+        background: rgba(128,128,128, 0.1); /* Neutral background */
         border: 1px solid rgba(128,128,128, 0.2);
         color: var(--text-main);
+        opacity: 0.9;
     }
 
-    /* Cover Letter Paper UI (Always White) */
+    /* Cover Letter Paper UI */
     .paper-doc {
         background-color: #ffffff;
         color: #1e293b;
@@ -250,14 +251,33 @@ st.markdown("""
         font-size: 0.9rem;
     }
 
-    /* Buttons */
+    /* ACTION BUTTONS (Analyze / Draft) - Enhanced Look */
+    .stButton > button {
+        background-color: transparent !important;
+        border: 2px solid var(--orange-border) !important;
+        color: var(--text-main) !important;
+        border-radius: 12px !important;
+        font-weight: 700 !important;
+        padding: 0.6rem 1.5rem !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+    }
+    .stButton > button:hover {
+        border-color: var(--orange-brand) !important;
+        color: var(--orange-brand) !important;
+        background-color: var(--orange-light) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(249, 115, 22, 0.2) !important;
+    }
+
+    /* APPLY BUTTON (Primary) - Gradient Style */
     .stLinkButton > a {
         background: linear-gradient(90deg, #ea580c 0%, #f97316 100%) !important;
         color: white !important;
         border-radius: 12px !important;
-        padding: 1rem 2rem !important;
-        font-size: 1.2rem !important;
-        font-weight: 700 !important;
+        padding: 0.7rem 2rem !important;
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
         text-align: center !important;
         text-decoration: none !important;
         display: block !important;
@@ -359,11 +379,11 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         * **FIX CASING:** Auto-correct name casing (e.g. `TAN RIHAO` -> `Tan Rihao`).
         * **NO MARKDOWN LINKS:** Write email as plain text `email@example.com`, NOT `[Email](mailto:...)`.
         
-        ### 2. CONTENT STRUCTURE (Strictly 3-4 Paragraphs):
-        * **PARAGRAPH 1 (The Introduction):** Introduce yourself by name and your specific degree/university. Explicitly state you are applying for the **{job_title}** role at **{employer_name}**. Show immediate professional confidence.
-        * **PARAGRAPH 2 (The Evidence / Hard Skills):** Connect specific technical achievements from the resume to the core requirements in the JD. Use the "Problem-Action-Result" format. Use numbers if available.
-        * **PARAGRAPH 3 (The Motivation / Why):** Explain *WHY* you want to join **{employer_name}** specifically. Connect your personal career goals or values to the company's mission/industry context found in the JD.
-        * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and call to action (interview request).
+        ### 2. CONTENT STRUCTURE (Strictly 4 Paragraphs):
+        * **PARAGRAPH 1 (The Hook):** Introduce yourself by name and your specific degree/university. Explicitly state you are applying for the **{job_title}** role at **{employer_name}**. Mention specifically why you admire the company (based on JD).
+        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume that directly prove you can solve their key requirements. Use numbers/metrics if available.
+        * **PARAGRAPH 3 (The Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect your personal values to the company's mission found in the JD.
+        * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and include a confident call to action for an interview.
         """
         
         completion = client.chat.completions.create(
