@@ -247,7 +247,8 @@ with st.sidebar:
             st.rerun()
 
 # --- STEP 1: UPLOAD RESUME ---
-st.markdown('<div class="step-header"> Upload Your Resume</div>', unsafe_allow_html=True)
+st.markdown('<div class="step-header"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
+
 
 if not st.session_state.resume_uploaded:
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
@@ -294,7 +295,7 @@ else:
 # --- STEP 2: SEARCH JOBS ---
 if st.session_state.resume_uploaded:
     st.markdown("---")
-    st.markdown('<div class="step-header"> Find Your Dream Job</div>', unsafe_allow_html=True)
+    st.markdown('<div class="step-header"><div class="step-number">2</div> Find Your Dream Job</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([2, 2, 1])
     
@@ -348,10 +349,6 @@ if not st.session_state.matches_df.empty:
         location_txt = row.get('location_display', 'Remote')
         job_id = row.get('job_id', f"job_{idx}")
         
-<<<<<<< HEAD
-=======
-
->>>>>>> 5b0d03a (ui update)
         # --- RENDER JOB CARD ---
         st.markdown('<div class="job-card">', unsafe_allow_html=True)
         
