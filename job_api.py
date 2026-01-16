@@ -102,7 +102,7 @@ class JobSearchAPI:
         
         return key
     
-    def _try_rapidapi(self, query: str, location: str, max_retries: int = 1) -> Optional[List[Dict]]:
+    def _try_rapidapi(self, query: str, location: str, max_retries: int = 3) -> Optional[List[Dict]]:
         """Try to get jobs from RapidAPI with multiple key support"""
         if not self.can_use_rapidapi:
             return None
@@ -169,7 +169,7 @@ class JobSearchAPI:
                 if data.get("status") == "OK" and data.get("data"):
                     jobs = data["data"]
                     logger.info(f"✅ RapidAPI returned {len(jobs)} jobs")
-                    return jobs[:1]  # Return up to 1 jobs
+                    return jobs[:3]  # Return up to 3 jobs
                 else:
                     logger.warning(f"⚠️ RapidAPI returned error: {data.get('status')}")
                     continue
@@ -203,7 +203,7 @@ class JobSearchAPI:
                 "app_id": self.adzuna_app_id,
                 "app_key": self.adzuna_api_key,
                 "what": query if query else "software engineer",
-                "results_per_page": 1,  # Get 1 results
+                "results_per_page": 3,  # Get 3 results
                 "max_days_old": 7
             }
             
@@ -220,7 +220,7 @@ class JobSearchAPI:
                 data = response.json()
                 jobs = data.get("results", [])
                 logger.info(f"✅ Adzuna returned {len(jobs)} jobs")
-                return jobs[:1]  # Return up to 1 jobs
+                return jobs[:3]  # Return up to 3 jobs
             else:
                 logger.warning(f"⚠️ Adzuna API error: {response.status_code}")
                 return None
@@ -425,7 +425,7 @@ class JobSearchAPI:
             }
     
     def search_jobs(self, query: str, location: str = "", num_pages: int = 1, **kwargs) -> pd.DataFrame:
-        """Search for jobs - returns up to 1 jobs from real APIs, NO MOCK DATA"""
+        """Search for jobs - returns up to 3 jobs from real APIs, NO MOCK DATA"""
         logger.info(f"🔍 Searching: '{query}' in '{location}' (real APIs only)")
         
         # Check API call limit
@@ -446,7 +446,7 @@ class JobSearchAPI:
             logger.info("📦 Using cached API results")
             # Still enhance the cached jobs
             enhanced_jobs = []
-            for job in cached_jobs[:1]:  # Process up to 1 cached jobs
+            for job in cached_jobs[:3]:  # Process up to 3 cached jobs
                 enhanced_job = self._enhance_job_data(job, "rapidapi_cached")
                 enhanced_jobs.append(enhanced_job)
             return pd.DataFrame(enhanced_jobs)
@@ -476,7 +476,7 @@ class JobSearchAPI:
         
         # Enhance the jobs
         enhanced_jobs = []
-        for job in jobs_data[:1]:  # Process up to 1 jobs
+        for job in jobs_data[:3]:  # Process up to 3 jobs
             enhanced_job = self._enhance_job_data(job, source)
             enhanced_jobs.append(enhanced_job)
         

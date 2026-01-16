@@ -3,6 +3,10 @@ import pandas as pd
 import os
 import json
 import re
+import requests
+import time
+import plotly.express as px
+from streamlit_lottie import st_lottie
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -11,10 +15,15 @@ from groq import Groq
 load_dotenv()
 
 st.set_page_config(
-    page_title="Resume Matcher Pro",
-    page_icon="⚡",
+    page_title="HirePilot",
+    page_icon="🚀",
     layout="wide",
-    initial_sidebar_state="collapsed" # Collapsed by default for a cleaner center focus
+    initial_sidebar_state="collapsed",
+    menu_items={
+        'Get Help': None,
+        'Report a bug': None,
+        'About': "HirePilot: AI-Powered Job Search"
+    }
 )
 
 # Configure Groq Client
@@ -37,7 +46,23 @@ except ImportError as e:
     st.error(f"❌ Failed to import modules: {e}")
     st.stop()
 
-# --- 2. CSS STYLING (SYSTEM THEME + ENHANCED BUTTONS) ---
+# --- LOTTIE ANIMATION LOADER ---
+@st.cache_data
+def load_lottieurl(url: str):
+    try:
+        r = requests.get(url, timeout=5)
+        if r.status_code != 200:
+            return None
+        return r.json()
+    except:
+        return None
+
+# Load Assets
+lottie_search = load_lottieurl("https://lottie.host/9d6d3765-a687-4389-a292-663290299f2e/F8Y1s2a2W4.json") 
+lottie_success = load_lottieurl("https://lottie.host/020cc9c9-7e2b-426c-9426-3d2379d76c94/Jg57s8c5Q8.json") 
+lottie_upload = load_lottieurl("https://lottie.host/2c1df74b-a19c-4ce4-8eb3-ee2ff88e5ffb/XA4W6IzcWS.json")
+
+# --- 2. CSS STYLING (GPU ACCELERATED ANIMATIONS) ---
 st.markdown("""
 <style>
     /* CSS Variables for System Adaptability */
@@ -51,30 +76,119 @@ st.markdown("""
         --text-main: var(--text-color);
     }
 
-    /* Top Banner */
+    /* --- ANIMATION KEYFRAMES (OPTIMIZED) --- */
+    
+    /* 1. Background Liquid Flow */
+    @keyframes liquid-flow {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* 2. Banner Entrance Slide (Uses Margin) */
+    @keyframes slide-in-top {
+        0% {
+            margin-top: -150px;
+            opacity: 0;
+        }
+        100% {
+            margin-top: 0;
+            opacity: 1;
+        }
+    }
+
+    /* 3. Content Fade In Up (For everything else) */
+    @keyframes fade-in-up {
+        0% {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* 4. Floating Levitation */
+    @keyframes levitate-smooth {
+        0% { transform: translateY(0px); }
+        50% { transform: translateY(-8px); }
+        100% { transform: translateY(0px); }
+    }
+
+    /* 5. Text Glow Pulse */
+    @keyframes text-glow-pulse {
+        0% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
+        50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 10px rgba(249, 115, 22, 0.4); }
+        100% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
+    }
+
+    /* Top Banner - "HirePilot" Style with Slide Entrance */
     .top-banner {
         text-align: center; 
-        padding: 4rem 0; 
-        background: linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fbbf24 100%); 
-        border-radius: 0 0 40px 40px; 
-        margin-bottom: 3rem; 
-        box-shadow: 0 20px 40px -10px rgba(249, 115, 22, 0.4);
+        padding: 5rem 0; 
+        
+        /* Modern Tech Gradient */
+        background: linear-gradient(120deg, #ea580c, #c2410c, #7c3aed, #4f46e5);
+        background-size: 200% 200%;
+        
+        /* Shape */
+        border-radius: 0 0 50px 50px; 
+        margin-bottom: 4rem; 
+        
+        /* COMBINED ANIMATION:
+           1. slide-in-top: Runs once for 1.2s (Entrance)
+           2. liquid-flow: Runs forever
+           3. levitate-smooth: Runs forever
+        */
+        animation: 
+            slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
+            liquid-flow 20s ease infinite,
+            levitate-smooth 6s ease-in-out infinite;
+            
+        will-change: background-position, transform, margin-top;
+        
+        position: relative;
+        z-index: 10;
+        
+        /* Shadow */
+        box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.4);
     }
+    
     .top-banner h1 {
         color: white !important; 
         margin: 0; 
-        font-size: 4rem; 
-        text-shadow: 0 4px 8px rgba(0,0,0,0.2); 
-        letter-spacing: -1px;
+        font-size: 4.5rem; 
+        font-weight: 800;
+        text-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        letter-spacing: -2px;
     }
+    
     .top-banner p {
-        color: rgba(255,255,255,0.95) !important; 
-        margin-top: 1rem; 
-        font-size: 1.4rem; 
+        color: rgba(255,255,255,0.85) !important; 
+        margin-top: 0.5rem; 
+        font-size: 1.1rem; 
         font-weight: 500;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        opacity: 0.9;
     }
 
-    /* Step Headers */
+    /* Footer Text Glow (White Text + Brand Colored Shadow) */
+    .footer-container {
+        text-align: center;
+        padding: 1.2rem;
+        margin-top: 3rem;
+        margin-bottom: 2rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        letter-spacing: 0.5px;
+        color: #ffffff;
+        text-shadow: 0 0 15px rgba(234, 88, 12, 0.5), 0 0 30px rgba(124, 58, 237, 0.4);
+        animation: text-glow-pulse 4s ease-in-out infinite;
+    }
+
+    /* Step Headers with GLOW Animation + FADE IN ENTRANCE */
     .step-header {
         font-size: 1.5rem;
         font-weight: 700;
@@ -82,22 +196,31 @@ st.markdown("""
         margin-bottom: 1rem;
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.8rem;
+        
+        /* Combined Animation: 
+           1. fade-in-up: Entrance (Delays 0.8s to start after banner)
+           2. text-glow-pulse: Infinite glow 
+        */
+        animation: 
+            fade-in-up 0.8s ease-out 0.8s backwards, 
+            text-glow-pulse 3s ease-in-out infinite;
     }
     .step-number {
-        background: var(--orange-brand);
+        background: linear-gradient(135deg, #ea580c, #f97316);
         color: white;
-        width: 35px;
-        height: 35px;
+        width: 40px;
+        height: 40px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         font-weight: 800;
+        box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
     }
 
-    /* Job Card Container - Gray Border Default */
+    /* Job Card Container & Upload Area - FADE IN AFTER HEADER */
     .job-card {
         background-color: var(--card-bg);
         border-radius: 24px;
@@ -105,12 +228,16 @@ st.markdown("""
         margin: 2.5rem 0;
         border: 1px solid var(--gray-border); /* Neutral gray border */
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
+        will-change: transform;
+        
+        /* Entrance: Wait 1.0s, then float up */
+        animation: fade-in-up 0.8s ease-out 1.0s backwards;
     }
     .job-card:hover {
         border-color: var(--orange-brand); /* Orange pop on hover */
-        transform: translateY(-3px);
-        box-shadow: 0 10px 25px -5px rgba(249, 115, 22, 0.1);
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px -5px rgba(249, 115, 22, 0.15);
     }
 
     /* Text & Headers */
@@ -282,7 +409,7 @@ st.markdown("""
         border-radius: 12px !important;
         font-weight: 700 !important;
         padding: 0.6rem 1.5rem !important;
-        transition: all 0.3s ease !important;
+        transition: all 0.2s ease !important;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
     }
     .stButton > button:hover {
@@ -440,18 +567,48 @@ if 'resume_uploaded' not in st.session_state: st.session_state.resume_uploaded =
 if 'last_uploaded_file' not in st.session_state: st.session_state.last_uploaded_file = None
 if 'ai_results' not in st.session_state: st.session_state.ai_results = {} 
 if 'cover_letters' not in st.session_state: st.session_state.cover_letters = {}
+if 'search_stats' not in st.session_state: st.session_state.search_stats = {
+    'searches': 0, 'matches_found': 0, 'avg_score': 0
+}
 
-# --- 5. MAIN UI LAYOUT (WIZARD STYLE) ---
+# --- 5. ANIMATED UI COMPONENTS ---
+
+def create_match_visualization(match_score):
+    """Create optimized gauge chart"""
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=match_score,
+        number={'suffix': "%", 'font': {'size': 30, 'color': "white"}},
+        domain={'x': [0, 1], 'y': [0, 1]},
+        gauge={
+            'axis': {'range': [None, 100], 'visible': False},
+            'bar': {'color': "#ff6b00"},
+            'bgcolor': "rgba(0,0,0,0)",
+            'borderwidth': 0,
+            'steps': [
+                {'range': [0, 100], 'color': 'rgba(255,255,255,0.1)'}
+            ],
+        }
+    ))
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        margin=dict(l=20, r=20, t=20, b=20),
+        height=150
+    )
+    return fig
+
+# --- 6. MAIN UI LAYOUT ---
 
 # Top Banner
 st.markdown("""
 <div class='top-banner'>
-    <h1>⚡ Resume Matcher Pro</h1>
-    <p>Advanced AI Analysis powered by Llama 3.1</p>
+    <h1>HirePilot</h1>
+    <p>powered by Groq Llama 3.1</p>
 </div>
 """, unsafe_allow_html=True)
 
-# Sidebar (Only for Reset & Quick Guide now)
+# Sidebar
 with st.sidebar:
     with st.expander("🐣 Quick Start Guide", expanded=True):
         st.markdown("""
@@ -473,31 +630,45 @@ with st.sidebar:
             st.rerun()
 
 # --- STEP 1: UPLOAD RESUME ---
-st.markdown('<div class="step-header"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
+st.markdown('<div class="step-header">1️⃣ Upload Your Resume</div>', unsafe_allow_html=True)
 
 if not st.session_state.resume_uploaded:
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
     
     if uploaded_file and (st.session_state.last_uploaded_file != uploaded_file.name):
-        with st.spinner("Parsing resume..."):
-            try:
-                if uploaded_file.name.endswith('.pdf'):
-                    text = extract_text_from_pdf(uploaded_file)
-                else:
-                    text = extract_text_from_docx(uploaded_file)
+        progress_text = "Analyzing Profile..."
+        my_bar = st.progress(0, text=progress_text)
+        
+        try:
+            # Simulate progress for smoother feel
+            for percent in range(0, 101, 20):
+                time.sleep(0.05)
+                my_bar.progress(percent, text=progress_text)
+            
+            if uploaded_file.name.endswith('.pdf'):
+                text = extract_text_from_pdf(uploaded_file)
+            else:
+                text = extract_text_from_docx(uploaded_file)
+            
+            if text and len(clean_text(text)) > 50:
+                st.session_state.resume_text = clean_text(text)
+                st.session_state.resume_uploaded = True
+                st.session_state.last_uploaded_file = uploaded_file.name
                 
-                if text and len(clean_text(text)) > 50:
-                    st.session_state.resume_text = clean_text(text)
-                    st.session_state.resume_uploaded = True
-                    st.session_state.last_uploaded_file = uploaded_file.name
-                    st.rerun()
-                else:
-                    st.error("❌ File empty or unreadable.")
-            except Exception as e:
-                st.error(f"Error: {e}")
+                my_bar.empty()
+                if lottie_upload:
+                    st_lottie(lottie_upload, height=150, key="upload_anim", loop=False)
+                st.toast("✅ Resume uploaded successfully!", icon="✨")
+                time.sleep(1)
+                st.rerun()
+            else:
+                my_bar.empty()
+                st.error("❌ File empty or unreadable.")
+        except Exception as e:
+            my_bar.empty()
+            st.error(f"Error: {e}")
 else:
-    # Collapsed view after upload
-    with st.expander("✅ Resume Uploaded (Click to change)", expanded=False):
+    with st.expander("✅ Resume Uploaded", expanded=False):
         st.success("Resume is loaded and ready for matching.")
         if st.button("Upload Different Resume"):
             st.session_state.resume_uploaded = False
@@ -506,7 +677,7 @@ else:
 # --- STEP 2: SEARCH JOBS ---
 if st.session_state.resume_uploaded:
     st.markdown("---")
-    st.markdown('<div class="step-header"><div class="step-number">2</div> Find Your Dream Job</div>', unsafe_allow_html=True)
+    st.markdown('<div class="step-header">2️⃣ Find Your Dream Job</div>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([2, 2, 1])
     
@@ -515,37 +686,68 @@ if st.session_state.resume_uploaded:
     with col2:
         location = st.text_input("Location", placeholder="e.g. Singapore, Remote")
     with col3:
-        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True) # Spacer
+        st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True) 
         search_btn = st.button("🚀 Find Matches", use_container_width=True, type="primary")
 
     if search_btn:
-        with st.spinner("🔍 Searching major job boards & Matching skills..."):
-            try:
-                api = JobSearchAPI()
-                jobs = api.search_jobs(query=job_title, location=location, num_pages=1)
-                
-                if not jobs.empty:
-                    st.session_state.jobs_df = jobs
-                    st.session_state.ai_results = {} 
-                    st.session_state.cover_letters = {}
-                    matcher = JobMatcher()
-                    # Assign to variable before session state
-                    matches = matcher.match_resume_to_jobs(
-                        st.session_state.resume_text, st.session_state.jobs_df, top_n=10
-                    )
-                    st.session_state.matches_df = matches
-                else:
-                    st.session_state.matches_df = pd.DataFrame() 
-                    st.error("❌ No jobs found. Try a broader search term.")
-            except Exception as e:
-                st.error(f"System Error: {str(e)}")
+        if lottie_search:
+            st_lottie(lottie_search, height=200, key="search_loader")
+        else:
+            with st.spinner("🔍 Searching..."):
+                pass
+
+        try:
+            api = JobSearchAPI()
+            jobs = api.search_jobs(query=job_title, location=location, num_pages=1)
+            
+            if not jobs.empty:
+                st.session_state.jobs_df = jobs
+                st.session_state.ai_results = {} 
+                st.session_state.cover_letters = {}
+                matcher = JobMatcher()
+                matches = matcher.match_resume_to_jobs(
+                    st.session_state.resume_text, st.session_state.jobs_df, top_n=10
+                )
+                st.session_state.matches_df = matches
+                st.rerun()
+            else:
+                st.session_state.matches_df = pd.DataFrame() 
+                st.error("❌ No jobs found. Try a broader search term.")
+        except Exception as e:
+            st.error(f"System Error: {str(e)}")
 
 # --- STEP 3: MATCHED RESULTS ---
 if not st.session_state.matches_df.empty:
     st.markdown("---")
-    st.markdown('<div class="step-header"><div class="step-number">3</div> Matched Roles</div>', unsafe_allow_html=True)
+    st.markdown('<div class="step-header">3️⃣ Matched Roles</div>', unsafe_allow_html=True)
+    
+    if lottie_success:
+        st_lottie(lottie_success, height=120, key="success_anim", loop=False)
     
     st.success(f"🎉 Found {len(st.session_state.matches_df)} jobs matching your resume!")
+
+    # --- PLOTLY: MARKET INSIGHTS ---
+    # Create a simple salary distribution chart if salary data exists
+    valid_salaries = st.session_state.matches_df[st.session_state.matches_df['salary_min'].notnull()]
+    if not valid_salaries.empty:
+        try:
+            fig = px.bar(
+                valid_salaries, 
+                x='employer_name', 
+                y='salary_min', 
+                color='match_score',
+                title='💰 Market Salary Analysis (Min Base)',
+                labels={'salary_min': 'Minimum Salary ($)', 'employer_name': 'Company'},
+                color_continuous_scale='Oranges'
+            )
+            fig.update_layout(
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)',
+                font_color='#ffffff'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        except Exception:
+            pass # Skip chart if error
 
     for idx, row in st.session_state.matches_df.iterrows():
         score = row.get('match_score', 0)
@@ -555,19 +757,26 @@ if not st.session_state.matches_df.empty:
         location_txt = row.get('location_display', 'Remote')
         job_id = row.get('job_id', f"job_{idx}")
         
-        # --- RENDER JOB CARD ---
-        st.markdown('<div class="job-card">', unsafe_allow_html=True)
+        # Determine colors for score
+        if score >= 80:
+            score_class = "high-match"
+        elif score >= 60:
+            score_class = "med-match"
+        else:
+            score_class = "low-match"
         
-        # 1. Header Row
-        c1, c2 = st.columns([3, 1])
-        with c1:
+        # --- RENDER JOB CARD ---
+        st.markdown(f'<div class="job-card">', unsafe_allow_html=True)
+        
+        # Header Row
+        col_a, col_b = st.columns([3, 1])
+        with col_a:
             st.markdown(f"<div class='job-title'>{job_title_txt}</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='company-name'>🏢 {employer}</div>", unsafe_allow_html=True)
         
-        with c2:
-            s_class = "high-match" if score >= 75 else "med-match" if score >= 50 else "low-match"
+        with col_b:
             st.markdown(f"""
-            <div class='score-badge {s_class}'>
+            <div class='score-badge {score_class}'>
                 <div class='score-val'>{score:.0f}%</div>
                 <div class='score-lbl'>Match</div>
             </div>
@@ -575,7 +784,7 @@ if not st.session_state.matches_df.empty:
         
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # 2. Meta Badges
+        # Meta Badges
         st.markdown(f"""
         <div class='meta-container'>
             <div class='meta-badge'>📍 {location_txt}</div>
@@ -584,125 +793,83 @@ if not st.session_state.matches_df.empty:
         </div>
         """, unsafe_allow_html=True)
         
-        # 3. AI Insights Logic
+        # AI Insights
         ai_data = st.session_state.ai_results.get(job_id)
         
         if ai_data:
-            st.markdown('<div class="ai-insight-card">', unsafe_allow_html=True)
-            
-            if "⚠️" in ai_data.get('summary', ''):
-                    st.markdown(f"<div class='summary-text' style='color:#fca5a5;'>{ai_data.get('summary')}</div>", unsafe_allow_html=True)
-            else:
-                # Executive Summary
+            if "⚠️" not in ai_data.get('summary', ''):
                 st.markdown(f"""
-                <div class='section-title'>📝 Executive Summary</div>
-                <div class='summary-text'>
-                    {ai_data.get('summary')}
-                    <br><br>
-                    <em>🎯 <strong>Why this role?</strong> {ai_data.get('role_intent')}</em>
+                <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="color: #ff6b00; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">📝 Executive Summary</div>
+                    <div style="color: #cbd5e1; line-height: 1.6;">{ai_data.get('summary')}</div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Tech Stack
                 tech = ai_data.get('tech_stack', [])
                 if tech:
-                    st.markdown(f"<div class='section-title'>💻 Tech Stack</div>", unsafe_allow_html=True)
-                    tech_html = "".join([f"<span class='tech-tag'>{t}</span>" for t in tech])
-                    st.markdown(f"<div style='margin-bottom:2rem;'>{tech_html}</div>", unsafe_allow_html=True)
-
-                # Columns: Responsibilities vs Requirements
-                col_left, col_right = st.columns(2)
-                with col_left:
+                    tech_html = "".join([f'<span class="tech-tag">{t}</span>' for t in tech[:8]])
+                    st.markdown(f"<div style='margin-bottom: 1.5rem;'>{tech_html}</div>", unsafe_allow_html=True)
+                
+                col_l, col_r = st.columns(2)
+                with col_l:
                     reqs = ai_data.get('key_responsibilities', [])
                     if reqs:
-                        list_html = "".join([f"<li>{r}</li>" for r in reqs]) 
-                        st.markdown(f"<div class='section-title'>📋 Responsibilities</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
-                with col_right:
+                        list_html = "".join([f'<li style="margin-bottom:0.5rem;">{r}</li>' for r in reqs[:4]])
+                        st.markdown(f"<div style='color:#ff6b00; font-weight:700; margin-bottom:0.5rem;'>📋 Responsibilities</div><ul style='color:#cbd5e1; padding-left:1.2rem;'>{list_html}</ul>", unsafe_allow_html=True)
+                with col_r:
                     must_haves = ai_data.get('requirements', [])
                     if must_haves:
-                        list_html = "".join([f"<li>{r}</li>" for r in must_haves]) 
-                        st.markdown(f"<div class='section-title'>✅ Requirements</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
-
-                # Education & Soft Skills
-                st.markdown("<br>", unsafe_allow_html=True)
-                c3, c4 = st.columns(2)
-                with c3:
-                    ed = ai_data.get('education_cert', 'Not specified')
-                    st.markdown(f"<div class='section-title'>🎓 Education</div><div style='color:var(--text-main); opacity:0.8;'>{ed}</div>", unsafe_allow_html=True)
-                with c4:
-                    soft = ai_data.get('soft_skills', [])
-                    if soft:
-                        st.markdown(f"<div class='section-title'>🤝 Soft Skills</div>", unsafe_allow_html=True)
-                        soft_html = "".join([f"<span class='soft-tag'>{s}</span>" for s in soft])
-                        st.markdown(f"<div>{soft_html}</div>", unsafe_allow_html=True)
-
-                # Culture & Benefits Box
-                st.markdown(f"""
-                <div class='culture-box'>
-                    <div class='section-title' style='color:#f97316; border-color:#f97316;'>🎁 Benefits & Culture</div>
-                    <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
-                        <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
-                        <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>
-                    </div>
-                    <div style='margin-top:1rem; opacity:0.8; font-style:italic;'>
-                        "{ai_data.get('culture_vibe', 'Standard corporate culture.')}"
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
-            
+                        list_html = "".join([f'<li style="margin-bottom:0.5rem;">{r}</li>' for r in must_haves[:4]])
+                        st.markdown(f"<div style='color:#00f3ff; font-weight:700; margin-bottom:0.5rem;'>✅ Requirements</div><ul style='color:#cbd5e1; padding-left:1.2rem;'>{list_html}</ul>", unsafe_allow_html=True)
+            else:
+                st.error(ai_data.get('summary'))
         else:
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
-                if GROQ_ENABLED:
-                    with st.spinner("🤖 Deep diving into job details..."):
-                        result = get_ai_analysis(job_desc, job_title_txt, employer)
-                        if result:
+            col_x, col_y = st.columns(2)
+            with col_x:
+                if st.button(f"✨ AI Deep Dive", key=f"ai_{idx}", use_container_width=True):
+                    if GROQ_ENABLED:
+                        with st.spinner("🤖 Analyzing job details..."):
+                            result = get_ai_analysis(job_desc, job_title_txt, employer)
                             st.session_state.ai_results[job_id] = result
                             st.rerun()
-                        else:
-                            st.error("Analysis Failed")
-                else:
-                    st.warning("⚠️ Add GROQ_API_KEY to .env")
+                    else:
+                        st.warning("⚠️ Add GROQ_API_KEY to .env")
 
-        # --- COVER LETTER SECTION ---
+        # Cover Letter
         cl_text = st.session_state.cover_letters.get(job_id)
         if cl_text:
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown("### 📝 Draft Cover Letter")
-            tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
-            
-            with tab_preview:
-                st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT DOCUMENT</div>{cl_text}</div>", unsafe_allow_html=True)
-            
-            with tab_edit:
-                edited_cl = st.text_area("Edit:", value=cl_text, height=400, key=f"edit_cl_{idx}")
-                if st.button("💾 Save Edits", key=f"save_cl_{idx}"):
-                    st.session_state.cover_letters[job_id] = edited_cl
-                    st.rerun()
+            st.markdown(f"""
+            <div style="background: #fdfbf7; color: #1e293b; padding: 2rem; border-radius: 4px; margin: 1.5rem 0; font-family: 'Times New Roman', serif;">
+                <div style="border-bottom: 1px solid #cbd5e1; padding-bottom: 0.5rem; margin-bottom: 1rem; font-family: sans-serif; font-size: 0.8rem; color: #64748b;">DRAFT PREVIEW</div>
+                <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.6;">{cl_text[:600]}...</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-            st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
+        # Buttons
+        st.markdown("<div style='margin-top: 1.5rem;'>", unsafe_allow_html=True)
+        col_btn1, col_btn2 = st.columns([1, 1])
         
-        # Footer Buttons
-        st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
-        col_b1, col_b2 = st.columns([1, 1])
-        with col_b1:
-            lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
-            if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
+        with col_btn1:
+            lbl = "✍️ Write Cover Letter" if not cl_text else "🔄 Regenerate Letter"
+            if st.button(lbl, key=f"cl_{idx}", use_container_width=True):
                 if GROQ_ENABLED:
-                        with st.spinner("✍️ Writing evidence-based letter..."):
-                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
+                    with st.spinner("Writing..."):
+                        letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
                         st.session_state.cover_letters[job_id] = letter
                         st.rerun()
                 else:
-                        st.warning("⚠️ Enable AI to use this.")
-        with col_b2:
+                    st.warning("Enable AI first")
+        
+        with col_btn2:
             if row.get('job_apply_link'):
-                st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
+                st.link_button("🚀 Apply Now", row['job_apply_link'], use_container_width=True)
         
         st.markdown("</div></div>", unsafe_allow_html=True) # End Job Card
 
 # Footer
 st.markdown("---")
-st.markdown("<div style='text-align: center; opacity: 0.7;'>Resume Matcher • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
+st.markdown("""
+<div class='footer-container'>
+    Turn skills into offers • Automate Your Job Search
+</div>
+""", unsafe_allow_html=True)
