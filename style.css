@@ -1,0 +1,381 @@
+/* CSS Variables for System Adaptability */
+:root {
+    --orange-brand: #f97316;
+    --orange-light: rgba(249, 115, 22, 0.1);
+    --orange-border: rgba(249, 115, 22, 0.4);
+    --gray-border: rgba(128, 128, 128, 0.3);
+    /* Streamlit native variables */
+    --card-bg: var(--secondary-background-color); 
+    --text-main: var(--text-color);
+}
+
+/* --- ANIMATION KEYFRAMES (UNCHANGED) --- */
+@keyframes liquid-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+@keyframes slide-in-top {
+    0% { margin-top: -150px; opacity: 0; }
+    100% { margin-top: 0; opacity: 1; }
+}
+@keyframes fade-in-up {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes levitate-smooth {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+}
+@keyframes text-glow-pulse {
+    0% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
+    50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 10px rgba(249, 115, 22, 0.4); }
+    100% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
+}
+
+/* --- TOP BANNER (UNCHANGED) --- */
+.top-banner {
+    text-align: center; 
+    padding: 3.5rem 0; 
+    background: linear-gradient(120deg, #ea580c, #c2410c, #7c3aed, #4f46e5);
+    background-size: 200% 200%;
+    border-radius: 0 0 40px 40px; 
+    margin-bottom: 2.5rem; 
+    animation: 
+        slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
+        liquid-flow 20s ease infinite,
+        levitate-smooth 6s ease-in-out infinite;
+    will-change: background-position, transform, margin-top;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 20px 40px -12px rgba(79, 70, 229, 0.4);
+}
+.top-banner h1 {
+    color: white !important; 
+    margin: 0; 
+    font-size: 3.5rem; 
+    font-weight: 800;
+    text-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+    letter-spacing: -2px;
+}
+.top-banner p {
+    color: rgba(255,255,255,0.85) !important; 
+    margin-top: 0.5rem; 
+    font-size: 1rem; 
+    font-weight: 500;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    opacity: 0.9;
+}
+
+/* Footer (UNCHANGED) */
+.footer-container {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ffffff;
+    text-shadow: 0 0 15px rgba(234, 88, 12, 0.5), 0 0 30px rgba(124, 58, 237, 0.4);
+    animation: text-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Step Headers (UNCHANGED) */
+.step-header {
+    font-size: 1.3rem; 
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    animation: fade-in-up 0.8s ease-out 0.8s backwards, text-glow-pulse 3s ease-in-out infinite;
+}
+.step-number {
+    background: linear-gradient(135deg, #ea580c, #f97316);
+    color: white;
+    width: 32px; 
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
+}
+
+/* --- JOB CARD (OPTIMIZED & ORGANIZED) --- */
+.job-card {
+    background-color: var(--card-bg);
+    border-radius: 12px; 
+    padding: 1.5rem; /* Increased padding to frame content better */
+    margin: 0.8rem 0; 
+    border: 1px solid var(--gray-border);
+    /* Subtle shadow for depth */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
+    will-change: transform;
+    animation: fade-in-up 0.8s ease-out 1.0s backwards;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; /* Controls vertical rhythm */
+}
+.job-card:hover {
+    border-color: var(--orange-brand);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 24px -8px rgba(249, 115, 22, 0.2);
+}
+
+/* Tighter, More Organized Text Headers */
+.job-title {
+    color: var(--text-main);
+    font-size: 1.8rem; 
+    font-weight: 800;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.5px;
+}
+.company-name {
+    color: var(--text-main);
+    opacity: 0.85;
+    font-size: 1.1rem; 
+    font-weight: 600;
+    margin-top: 0.2rem;
+    margin-bottom: 0.8rem; /* Reduced gap */
+}
+
+/* Distinct Section Dividers */
+.section-title {
+    color: var(--orange-brand); 
+    font-size: 0.9rem; 
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 800;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem; 
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    /* Stronger separator line */
+    border-bottom: 2px solid var(--orange-border);
+    padding-bottom: 0.3rem;
+    width: 100%;
+}
+
+.summary-text {
+    font-size: 1rem;
+    line-height: 1.45; /* Tighter line height for density */
+    color: var(--text-main);
+    margin-bottom: 1rem; 
+    font-weight: 400;
+    text-align: left;
+}
+
+/* High Density Lists */
+ul.clean-list { list-style-type: none; padding: 0; margin: 0; }
+ul.clean-list li {
+    position: relative;
+    padding-left: 1.4rem;
+    margin-bottom: 0.3rem; /* Very tight spacing */
+    color: var(--text-main);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    opacity: 0.95;
+}
+ul.clean-list li::before {
+    content: "▪"; /* Square bullet for tech look */
+    position: absolute;
+    left: 0;
+    font-size: 1.2rem;
+    line-height: 1rem;
+    color: var(--orange-brand);
+}
+
+/* Badges - Organized Rows */
+.tech-tag {
+    display: inline-block;
+    background: var(--card-bg);
+    color: var(--orange-brand);
+    border: 1px solid var(--orange-border);
+    padding: 0.25rem 0.75rem; 
+    border-radius: 6px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin: 0 0.3rem 0.3rem 0; /* Tight grid feel */
+}
+.soft-tag {
+    display: inline-block;
+    background: var(--orange-light);
+    color: var(--text-main);
+    border: 1px solid var(--orange-border);
+    padding: 0.25rem 0.75rem; 
+    border-radius: 99px;
+    font-size: 0.85rem;
+    margin: 0 0.3rem 0.3rem 0;
+}
+
+/* Culture/Benefits Box - Filled & Compact */
+.culture-box {
+    background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
+    border: 1px solid var(--orange-border);
+    border-radius: 8px;
+    padding: 1rem; 
+    margin-top: 0.8rem;
+}
+
+/* AI Insight Section - Filled */
+.ai-insight-card {
+    background: var(--card-bg); 
+    border-radius: 10px;
+    padding: 1.2rem;
+    margin-top: 1rem;
+    border: 1px solid var(--orange-border);
+    animation: fadeIn 0.5s;
+    /* Ensure content fills width */
+    width: 100%;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Score Badge - Organized Alignment */
+.score-badge {
+    background: var(--card-bg);
+    border: 2px solid;
+    border-radius: 12px;
+    padding: 0.8rem;
+    text-align: center;
+    min-width: 90px;
+    /* Make it fit nicely in columns */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.score-val { font-size: 2.2rem; font-weight: 900; line-height: 1; margin-bottom: 0; color: var(--text-main); }
+.score-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-main); opacity: 0.7; margin-top: 0.2rem; }
+
+.high-match { color: #10b981; border-color: #10b981; }
+.med-match { color: #f59e0b; border-color: #f59e0b; }
+.low-match { color: #ef4444; border-color: #ef4444; }
+
+/* Meta Badges */
+.meta-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+}
+.meta-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 1rem;
+    border-radius: 50px; 
+    font-size: 0.85rem;
+    font-weight: 600;
+    background: rgba(128,128,128, 0.1); 
+    border: 1px solid rgba(128,128,128, 0.2);
+    color: var(--text-main);
+}
+
+/* Paper Doc (UNCHANGED) */
+.paper-doc {
+    background-color: #ffffff;
+    color: #1e293b;
+    padding: 2rem; 
+    border-radius: 2px;
+    font-family: 'Times New Roman', serif;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+    font-size: 1rem;
+}
+.paper-header {
+    border-bottom: 1px solid #cbd5e1;
+    padding-bottom: 0.8rem;
+    margin-bottom: 1.2rem;
+    font-family: 'Arial', sans-serif;
+    color: #334155;
+    font-size: 0.85rem;
+}
+
+/* --- BIGGER, BOLDER ACTION BUTTONS --- */
+.stButton > button {
+    /* Subtle Gradient Background by Default (Not transparent) */
+    background: linear-gradient(180deg, var(--card-bg) 0%, rgba(249, 115, 22, 0.15) 100%) !important;
+    border: 1px solid var(--orange-brand) !important;
+    color: var(--text-main) !important;
+    
+    /* Bigger & Bolder */
+    border-radius: 12px !important;
+    font-weight: 800 !important; /* Extra bold text */
+    font-size: 1.1rem !important; /* Larger text */
+    padding: 0.8rem 2rem !important; /* Larger clickable area */
+    min-width: 180px !important; /* Enforce width */
+    
+    letter-spacing: 0.5px !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    /* Default Shadow to make them pop */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+/* Hover State: Fills with Bright Gradient */
+.stButton > button:hover {
+    border-color: transparent !important;
+    color: white !important;
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;
+    transform: translateY(-3px) !important;
+    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4) !important;
+}
+
+/* Click State */
+.stButton > button:active {
+    transform: translateY(0px) !important;
+    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2) !important;
+}
+
+/* --- APPLY BUTTON (Primary Link - Bigger) --- */
+.stLinkButton > a {
+    background: linear-gradient(90deg, #ea580c 0%, #f97316 100%) !important;
+    color: white !important;
+    
+    /* Matching Size to Action Buttons */
+    border-radius: 12px !important;
+    padding: 0.85rem 2.5rem !important; 
+    font-size: 1.1rem !important;
+    
+    font-weight: 900 !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    display: block !important;
+    border: none !important;
+    box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.4) !important;
+    transition: transform 0.2s, box-shadow 0.2s !important;
+}
+
+.stLinkButton > a:hover {
+    transform: translateY(-3px) !important;
+    background: linear-gradient(90deg, #c2410c 0%, #ea580c 100%) !important;
+    box-shadow: 0 15px 25px -5px rgba(234, 88, 12, 0.5) !important;
+}
+
+/* --- MOBILE OPTIMIZATIONS --- */
+@media (max-width: 768px) {
+    .top-banner h1 { font-size: 2.2rem !important; }
+    .job-card { padding: 1.2rem !important; margin: 0.8rem 0 !important; border-radius: 12px !important; }
+    .job-title { font-size: 1.5rem !important; }
+    .score-badge { padding: 0.6rem !important; min-width: 70px !important; margin-top: 0.8rem; }
+    .score-val { font-size: 1.8rem !important; }
+    
+    /* Stack buttons on mobile */
+    .stButton > button { width: 100% !important; margin-bottom: 0.8rem !important; }
+    .stLinkButton > a { width: 100% !important; text-align: center !important; }
+}

@@ -26,6 +26,16 @@ st.set_page_config(
     }
 )
 
+# --- 2. LOAD CSS ---
+def local_css(file_name):
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error(f"⚠️ Could not find {file_name}. Make sure it is in the same folder.")
+
+local_css("style.css")
+
 # Configure Groq Client
 api_key = os.getenv("GROQ_API_KEY")
 GROQ_ENABLED = False
@@ -62,399 +72,6 @@ lottie_search = load_lottieurl("https://lottie.host/9d6d3765-a687-4389-a292-6632
 lottie_success = load_lottieurl("https://lottie.host/020cc9c9-7e2b-426c-9426-3d2379d76c94/Jg57s8c5Q8.json") 
 lottie_upload = load_lottieurl("https://lottie.host/2c1df74b-a19c-4ce4-8eb3-ee2ff88e5ffb/XA4W6IzcWS.json")
 
-# --- 2. CSS STYLING (GPU ACCELERATED ANIMATIONS) ---
-st.markdown("""
-<style>
-    /* CSS Variables for System Adaptability */
-    :root {
-        --orange-brand: #f97316;
-        --orange-light: rgba(249, 115, 22, 0.1);
-        --orange-border: rgba(249, 115, 22, 0.3);
-        --gray-border: rgba(128, 128, 128, 0.3);
-        /* Streamlit native variables */
-        --card-bg: var(--secondary-background-color); 
-        --text-main: var(--text-color);
-    }
-
-    /* --- ANIMATION KEYFRAMES (OPTIMIZED) --- */
-    
-    /* 1. Background Liquid Flow */
-    @keyframes liquid-flow {
-        0% { background-position: 0% 50%; }
-        50% { background-position: 100% 50%; }
-        100% { background-position: 0% 50%; }
-    }
-    
-    /* 2. Banner Entrance Slide (Uses Margin) */
-    @keyframes slide-in-top {
-        0% {
-            margin-top: -150px;
-            opacity: 0;
-        }
-        100% {
-            margin-top: 0;
-            opacity: 1;
-        }
-    }
-
-    /* 3. Content Fade In Up (For everything else) */
-    @keyframes fade-in-up {
-        0% {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    /* 4. Floating Levitation */
-    @keyframes levitate-smooth {
-        0% { transform: translateY(0px); }
-        50% { transform: translateY(-8px); }
-        100% { transform: translateY(0px); }
-    }
-
-    /* 5. Text Glow Pulse */
-    @keyframes text-glow-pulse {
-        0% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
-        50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 10px rgba(249, 115, 22, 0.4); }
-        100% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
-    }
-
-    /* Top Banner - "HirePilot" Style with Slide Entrance */
-    .top-banner {
-        text-align: center; 
-        padding: 5rem 0; 
-        
-        /* Modern Tech Gradient */
-        background: linear-gradient(120deg, #ea580c, #c2410c, #7c3aed, #4f46e5);
-        background-size: 200% 200%;
-        
-        /* Shape */
-        border-radius: 0 0 50px 50px; 
-        margin-bottom: 4rem; 
-        
-        /* COMBINED ANIMATION:
-           1. slide-in-top: Runs once for 1.2s (Entrance)
-           2. liquid-flow: Runs forever
-           3. levitate-smooth: Runs forever
-        */
-        animation: 
-            slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-            liquid-flow 20s ease infinite,
-            levitate-smooth 6s ease-in-out infinite;
-            
-        will-change: background-position, transform, margin-top;
-        
-        position: relative;
-        z-index: 10;
-        
-        /* Shadow */
-        box-shadow: 0 25px 50px -12px rgba(79, 70, 229, 0.4);
-    }
-    
-    .top-banner h1 {
-        color: white !important; 
-        margin: 0; 
-        font-size: 4.5rem; 
-        font-weight: 800;
-        text-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-        letter-spacing: -2px;
-    }
-    
-    .top-banner p {
-        color: rgba(255,255,255,0.85) !important; 
-        margin-top: 0.5rem; 
-        font-size: 1.1rem; 
-        font-weight: 500;
-        letter-spacing: 1px;
-        text-transform: uppercase;
-        opacity: 0.9;
-    }
-
-    /* Footer Text Glow (White Text + Brand Colored Shadow) */
-    .footer-container {
-        text-align: center;
-        padding: 1.2rem;
-        margin-top: 3rem;
-        margin-bottom: 2rem;
-        font-weight: 700;
-        font-size: 1.1rem;
-        letter-spacing: 0.5px;
-        color: #ffffff;
-        text-shadow: 0 0 15px rgba(234, 88, 12, 0.5), 0 0 30px rgba(124, 58, 237, 0.4);
-        animation: text-glow-pulse 4s ease-in-out infinite;
-    }
-
-    /* Step Headers with GLOW Animation + FADE IN ENTRANCE */
-    .step-header {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-main);
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.8rem;
-        
-        /* Combined Animation: 
-           1. fade-in-up: Entrance (Delays 0.8s to start after banner)
-           2. text-glow-pulse: Infinite glow 
-        */
-        animation: 
-            fade-in-up 0.8s ease-out 0.8s backwards, 
-            text-glow-pulse 3s ease-in-out infinite;
-    }
-    .step-number {
-        background: linear-gradient(135deg, #ea580c, #f97316);
-        color: white;
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        font-weight: 800;
-        box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
-    }
-
-    /* Job Card Container & Upload Area - FADE IN AFTER HEADER */
-    .job-card {
-        background-color: var(--card-bg);
-        border-radius: 24px;
-        padding: 3rem;
-        margin: 2.5rem 0;
-        border: 1px solid var(--gray-border); /* Neutral gray border */
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
-        will-change: transform;
-        
-        /* Entrance: Wait 1.0s, then float up */
-        animation: fade-in-up 0.8s ease-out 1.0s backwards;
-    }
-    .job-card:hover {
-        border-color: var(--orange-brand); /* Orange pop on hover */
-        transform: translateY(-5px);
-        box-shadow: 0 15px 30px -5px rgba(249, 115, 22, 0.15);
-    }
-
-    /* Text & Headers */
-    .job-title {
-        color: var(--text-main);
-        font-size: 2rem;
-        font-weight: 800;
-        margin: 0;
-    }
-    .company-name {
-        color: var(--text-main);
-        opacity: 0.8;
-        font-size: 1.4rem;
-        font-weight: 500;
-        margin-top: 0.5rem;
-    }
-    .section-title {
-        color: var(--orange-brand); 
-        font-size: 1.1rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        font-weight: 800;
-        margin-bottom: 1.2rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        border-bottom: 2px solid var(--orange-border);
-        padding-bottom: 0.5rem;
-    }
-    .summary-text {
-        font-size: 1.1rem;
-        line-height: 1.8;
-        color: var(--text-main);
-        margin-bottom: 2rem;
-        font-weight: 400;
-    }
-
-    /* Lists */
-    ul.clean-list { list-style-type: none; padding: 0; margin: 0; }
-    ul.clean-list li {
-        position: relative;
-        padding-left: 2rem;
-        margin-bottom: 1rem;
-        color: var(--text-main);
-        font-size: 1rem;
-        line-height: 1.6;
-        opacity: 0.9;
-    }
-    ul.clean-list li::before {
-        content: "🔹"; 
-        position: absolute;
-        left: 0;
-        font-size: 0.9rem;
-        color: var(--orange-brand);
-    }
-
-    /* Tech Stack Badges */
-    .tech-tag {
-        display: inline-block;
-        background: var(--card-bg);
-        color: var(--orange-brand);
-        border: 1px solid var(--orange-border);
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        font-family: monospace;
-        font-size: 0.9rem;
-        font-weight: 700;
-        margin: 0 0.5rem 0.5rem 0;
-    }
-
-    /* Soft Skill Badges */
-    .soft-tag {
-        display: inline-block;
-        background: var(--orange-light);
-        color: var(--text-main);
-        border: 1px solid var(--orange-border);
-        padding: 0.4rem 1rem;
-        border-radius: 99px;
-        font-size: 0.9rem;
-        margin: 0 0.5rem 0.5rem 0;
-    }
-
-    /* Culture/Benefits Box */
-    .culture-box {
-        background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
-        border: 1px solid var(--orange-border);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-top: 1.5rem;
-    }
-
-    /* AI Insight Section */
-    .ai-insight-card {
-        background: var(--card-bg); 
-        border-radius: 16px;
-        padding: 2rem;
-        margin-top: 2rem;
-        border: 1px solid var(--orange-border);
-        animation: fadeIn 0.5s;
-    }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    /* Score Badge */
-    .score-badge {
-        background: var(--card-bg);
-        border: 2px solid;
-        border-radius: 20px;
-        padding: 1.5rem;
-        text-align: center;
-        min-width: 120px;
-    }
-    .score-val { font-size: 2.8rem; font-weight: 900; line-height: 1; margin-bottom: 0.2rem; color: var(--text-main); }
-    .score-lbl { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-main); opacity: 0.7; }
-    
-    .high-match { color: #10b981; border-color: #10b981; }
-    .med-match { color: #f59e0b; border-color: #f59e0b; }
-    .low-match { color: #ef4444; border-color: #ef4444; }
-
-    /* Meta Badges (Static Information) */
-    .meta-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 2.5rem;
-    }
-    .meta-badge {
-        display: flex;
-        align-items: center;
-        gap: 0.6rem;
-        padding: 0.6rem 1.2rem;
-        border-radius: 50px; /* More rounded/pill shape */
-        font-size: 0.95rem;
-        font-weight: 500;
-        background: rgba(128,128,128, 0.1); /* Neutral background */
-        border: 1px solid rgba(128,128,128, 0.2);
-        color: var(--text-main);
-        opacity: 0.9;
-    }
-
-    /* Cover Letter Paper UI */
-    .paper-doc {
-        background-color: #ffffff;
-        color: #1e293b;
-        padding: 3rem;
-        border-radius: 2px;
-        font-family: 'Times New Roman', serif;
-        line-height: 1.6;
-        white-space: pre-wrap;
-        margin-top: 1rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        border: 1px solid #e2e8f0;
-        font-size: 1.05rem;
-    }
-    .paper-header {
-        border-bottom: 1px solid #cbd5e1;
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
-        font-family: 'Arial', sans-serif;
-        color: #334155;
-        font-size: 0.9rem;
-    }
-
-    /* ACTION BUTTONS (Analyze / Draft) - Enhanced Look */
-    .stButton > button {
-        background-color: transparent !important;
-        border: 2px solid var(--orange-border) !important;
-        color: var(--text-main) !important;
-        border-radius: 12px !important;
-        font-weight: 700 !important;
-        padding: 0.6rem 1.5rem !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
-    }
-    .stButton > button:hover {
-        border-color: var(--orange-brand) !important;
-        color: var(--orange-brand) !important;
-        background-color: var(--orange-light) !important;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(249, 115, 22, 0.2) !important;
-    }
-
-    /* APPLY BUTTON (Primary) - Gradient Style */
-    .stLinkButton > a {
-        background: linear-gradient(90deg, #ea580c 0%, #f97316 100%) !important;
-        color: white !important;
-        border-radius: 12px !important;
-        padding: 0.7rem 2rem !important;
-        font-size: 1.1rem !important;
-        font-weight: 800 !important;
-        text-align: center !important;
-        text-decoration: none !important;
-        display: block !important;
-        border: none !important;
-        box-shadow: 0 10px 15px -3px rgba(234, 88, 12, 0.4) !important;
-        transition: transform 0.2s !important;
-    }
-    .stLinkButton > a:hover {
-        transform: translateY(-2px) !important;
-        background: linear-gradient(90deg, #c2410c 0%, #ea580c 100%) !important;
-    }
-
-    /* --- MOBILE OPTIMIZATIONS --- */
-    @media (max-width: 768px) {
-        .top-banner h1 { font-size: 2.5rem !important; }
-        .job-card { padding: 1.5rem !important; margin: 1.5rem 0 !important; border-radius: 16px !important; }
-        .job-title { font-size: 1.6rem !important; }
-        .score-badge { padding: 0.8rem !important; min-width: 80px !important; margin-top: 1rem; }
-        .score-val { font-size: 2rem !important; }
-        .meta-container { gap: 0.5rem !important; }
-        .meta-badge { padding: 0.5rem 1rem !important; font-size: 0.85rem !important; width: 100%; justify-content: center; }
-        .stButton > button { width: 100% !important; margin-bottom: 0.5rem !important; }
-        .stLinkButton > a { width: 100% !important; text-align: center !important; }
-        .paper-doc { padding: 1.5rem !important; }
-    }
-</style>
-""", unsafe_allow_html=True)
 
 # --- 3. GROQ AI HELPER FUNCTIONS ---
 
@@ -546,7 +163,7 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume that directly prove you can solve their key requirements. Use numbers.
         * **PARAGRAPH 3 (Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect personal values to company mission.
         * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and include a confident call to action for an interview.
-        * **SIGN-OFF:** End with "Sincerely," followed by a newline and the [Candidate Name].
+        * **SIGN-OFF:** End with "Yours Sincerely," followed by a newline and the [Candidate Name].
         """
         
         completion = client.chat.completions.create(
@@ -604,7 +221,7 @@ def create_match_visualization(match_score):
 st.markdown("""
 <div class='top-banner'>
     <h1>HirePilot</h1>
-    <p>powered by Groq Llama 3.1</p>
+    <p>Automate your Job Search</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -731,6 +348,10 @@ if not st.session_state.matches_df.empty:
         location_txt = row.get('location_display', 'Remote')
         job_id = row.get('job_id', f"job_{idx}")
         
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5b0d03a (ui update)
         # --- RENDER JOB CARD ---
         st.markdown('<div class="job-card">', unsafe_allow_html=True)
         
@@ -850,7 +471,7 @@ if not st.session_state.matches_df.empty:
             tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
             
             with tab_preview:
-                st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT DOCUMENT</div>{cl_text}</div>", unsafe_allow_html=True)
+                st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT COVER LETTER</div>{cl_text}</div>", unsafe_allow_html=True)
             
             with tab_edit:
                 edited_cl = st.text_area("Edit:", value=cl_text, height=400, key=f"edit_cl_{idx}")
