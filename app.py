@@ -15,7 +15,7 @@ from groq import Groq
 load_dotenv()
 
 st.set_page_config(
-    page_title="HirePilot",
+    page_title="HirePilot.",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="collapsed",
@@ -221,7 +221,7 @@ def create_match_visualization(match_score):
 st.markdown("""
 <div class='top-banner'>
     <h1>HirePilot</h1>
-    <p>Automate your Job Search</p>
+    <p class="typing-subtitle">Automate your job search today..</p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -251,11 +251,11 @@ st.markdown('<div class="step-header"><div class="step-number">1</div> Upload Yo
 
 if not st.session_state.resume_uploaded:
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
-    
+
     if uploaded_file and (st.session_state.last_uploaded_file != uploaded_file.name):
         progress_text = "Analyzing Profile..."
         my_bar = st.progress(0, text=progress_text)
-        
+    
         try:
             # Simulate progress for smoother feel
             for percent in range(0, 101, 20):
@@ -432,7 +432,7 @@ if not st.session_state.matches_df.empty:
                 # Culture & Benefits Box
                 st.markdown(f"""
                 <div class='culture-box'>
-                    <div class='section-title' style='color:#f97316; border-color:#f97316;'>🎁 Benefits & Culture</div>
+                    <div class='section-title' style='color:#3b82f6; border-color:#3b82f6;'>🎁 Benefits & Culture</div>
                     <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
                         <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
                         <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>

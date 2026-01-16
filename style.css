@@ -1,15 +1,41 @@
-/* CSS Variables for System Adaptability */
+/* ==========================================================================
+   1. GLOBAL VARIABLES & THEME SETUP
+   ========================================================================== */
+
+/* System 2: Professional Dark Theme Variables */
 :root {
-    --orange-brand: #f97316;
-    --orange-light: rgba(249, 115, 22, 0.1);
-    --orange-border: rgba(249, 115, 22, 0.4);
-    --gray-border: rgba(128, 128, 128, 0.3);
-    /* Streamlit native variables */
-    --card-bg: var(--secondary-background-color); 
-    --text-main: var(--text-color);
+  /* Professional Dark Color Palette */
+  --obsidian: #0f172a;
+  --slate-900: #1e293b;
+  --slate-800: #334155;
+  --slate-700: #475569;
+  --slate-400: #94a3b8;
+  --slate-200: #e2e8f0;
+
+  /* Accent Colors */
+  --primary-blue: #3b82f6;
+  --primary-blue-dark: #2563eb;
+  --success-green: #10b981;
+  --warning-amber: #f59e0b;
+  --error-red: #ef4444;
+  --info-cyan: #06b6d4;
+
+  /* Glass Morphism */
+  --glass-bg: rgba(15, 23, 42, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+
+  /* Typography */
+  --font-primary: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "SF Mono", Monaco, "Roboto Mono", monospace;
 }
 
-/* --- ANIMATIONS --- */
+
+/* ==========================================================================
+   2. ANIMATION KEYFRAMES
+   ========================================================================== */
+
+/* -- Group A: Fluid & Slide Animations -- */
 @keyframes liquid-flow {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -28,30 +54,131 @@
     50% { transform: translateY(-8px); }
     100% { transform: translateY(0px); }
 }
-@keyframes text-glow-pulse {
-    0% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
-    50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 10px rgba(249, 115, 22, 0.4); }
-    100% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
-}
 @keyframes gradient-move {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
 }
 
-/* --- TOP BANNER (DOMINANT & CENTRALIZED) --- */
+/* -- Group B: Text Effects -- */
+@keyframes text-glow-pulse {
+    0% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.2); }
+    50% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 10px rgba(59, 130, 246, 0.4); }
+    100% { text-shadow: 0 0 5px rgba(59, 130, 246, 0.2); }
+}
+@keyframes glowPulse {
+  0%, 100% { text-shadow: 0 0 20px rgba(59, 130, 246, 0.5), 0 0 40px rgba(59, 130, 246, 0.3), 0 0 60px rgba(59, 130, 246, 0.2); }
+  50% { text-shadow: 0 0 30px rgba(59, 130, 246, 0.7), 0 0 60px rgba(59, 130, 246, 0.4), 0 0 80px rgba(59, 130, 246, 0.3), 0 0 100px rgba(59, 130, 246, 0.2); }
+}
+
+/* --- NATURAL & SMOOTH TYPING ANIMATION --- */
+
+/* 1. The Typing Cycle (Adjusted for slower deletion) */
+@keyframes smoothTypingCycle {
+  /* 0% to 30%: Typing Phase (Fast & Confident) */
+  0% { width: 0; }
+  30% { width: 100%; } 
+  
+  /* 30% to 75%: Reading Pause (Long enough to read) */
+  75% { width: 100%; }
+  
+  /* 75% to 95%: Deleting Phase (SLOWER NOW - Natural backspacing) */
+  95% { width: 0; }
+  
+  /* 95% to 100%: Short Breath before restarting */
+  100% { width: 0; }
+}
+
+/* 2. The Blinking Cursor */
+@keyframes blinkCursor {
+  0%, 100% { border-color: transparent; }
+  50% { border-color: var(--primary-blue); }
+}
+
+/* --- APPLYING TO ELEMENT --- */
+.top-banner .typing-subtitle {
+  /* Font & Layout */
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--slate-400);
+  margin: 1.5rem 0 3rem;
+  position: relative;
+  z-index: 1;
+  letter-spacing: 1px;
+  
+  /* Layout specific for typing */
+  display: inline-block;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: max-content;
+  
+  /* The Cursor */
+  border-right: 3px solid var(--primary-blue);
+  
+  /* ANIMATION SETTINGS
+     1. Duration: 12s total cycle.
+     2. Steps: 60 (High framerate for smoothness).
+  */
+  animation: 
+    smoothTypingCycle 12s steps(60, end) infinite,
+    blinkCursor 0.8s step-end infinite;
+    
+  will-change: width;
+}
+
+/* -- Group C: Epic Hero Animations -- */
+@keyframes epicEntrance {
+  0% { transform: translateY(-100px) scale(0.8); opacity: 0; filter: blur(10px); }
+  20% { transform: translateY(50px) scale(1.1); opacity: 0.8; filter: blur(5px); }
+  40% { transform: translateY(-20px) scale(1.05); opacity: 0.9; filter: blur(2px); }
+  60% { transform: translateY(10px) scale(1.02); opacity: 0.95; filter: blur(1px); }
+  80% { transform: translateY(-5px) scale(1.01); opacity: 0.98; filter: blur(0.5px); }
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
+}
+@keyframes floatUp {
+  0% { transform: translateY(100px) rotate(0deg); opacity: 0; }
+  50% { opacity: 0.5; }
+  100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+}
+@keyframes gradientShimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes bounce {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-10px); }
+}
+
+
+/* ==========================================================================
+   3. HEADER & HERO SECTION
+   ========================================================================== */
+
+/* -- Version 2: Epic Hero Override -- */
 .top-banner {
-    /* Flexbox for perfect centering */
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    
-    /* Increased height for dominance */
-    min-height: 400px; 
-    padding: 4rem 1rem; 
-    
-    background: linear-gradient(120deg, #ea580c, #c2410c, #7c3aed, #4f46e5);
+  text-align: center;
+  padding: 8rem 2rem 10rem 2rem;
+  margin-bottom: 4rem;
+  position: relative;
+  overflow: hidden;
+
+  /* EXACT UI BACKGROUND */
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+
+  /* Accent Border Bottom */
+  border-bottom: 1px solid var(--glass-border);
+
+  /* Add subtle grid for depth */
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+
+  /* Center content */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
     background-size: 200% 200%;
     border-radius: 0 0 50px 50px; 
     margin-bottom: 3rem; 
@@ -64,74 +191,116 @@
     will-change: background-position, transform, margin-top;
     position: relative;
     z-index: 10;
-    box-shadow: 0 25px 60px -15px rgba(79, 70, 229, 0.5);
+    box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
+
 }
 
+
+/* Header Text (Version 2 - Epic) */
 .top-banner h1 {
-    color: white !important; 
-    margin: 0; 
-    /* MASSIVE FONT SIZE */
-    font-size: 5.5rem; 
-    font-weight: 900;
-    line-height: 1.1;
-    text-align: center;
-    
-    /* Strong shadow to pop against background */
-    text-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-    letter-spacing: -3px;
+  font-size: 6rem; /* Much larger */
+  font-weight: 900; /* Extra bold */
+  color: var(--slate-200);
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -2px;
+  line-height: 1;
+  position: relative;
+  z-index: 1;
+
+  /* Epic entrance animation */
+  animation: epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+
+  /* Gradient text with shimmer */
+  background: linear-gradient(
+    90deg,
+    var(--slate-200) 0%,
+    var(--primary-blue) 20%,
+    var(--info-cyan) 40%,
+    var(--primary-blue) 60%,
+    var(--slate-200) 80%,
+    var(--primary-blue) 100%
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+
+  /* Continuous shimmer animation */
+  animation: epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    gradientShimmer 8s linear infinite;
+
+  /* Glowing effect */
+  animation: glowPulse 4s ease-in-out infinite;
+
+  /* 3D text effect */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 0 rgba(255, 255, 255, 0.09), 0 3px 0 rgba(255, 255, 255, 0.08),
+    0 4px 0 rgba(255, 255, 255, 0.07), 0 5px 0 rgba(255, 255, 255, 0.06),
+    0 6px 0 rgba(255, 255, 255, 0.05), 0 7px 0 rgba(255, 255, 255, 0.04),
+    0 8px 0 rgba(255, 255, 255, 0.03), 0 9px 0 rgba(255, 255, 255, 0.02),
+    0 10px 0 rgba(255, 255, 255, 0.01);
 }
 
-.top-banner p {
-    color: rgba(255,255,255,0.95) !important; 
-    margin-top: 1rem; 
-    /* Larger Subtext */
-    font-size: 1.4rem; 
-    font-weight: 600;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    text-align: center;
-    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+/* Hero Stats Badges */
+.hero-stats {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+  animation: fadeIn 1s ease-out 2.5s both;
 }
 
-/* Footer */
-.footer-container {
-    text-align: center;
-    padding: 1rem;
-    margin-top: 2rem;
-    margin-bottom: 1rem;
-    font-weight: 700;
-    font-size: 1rem;
-    color: #ffffff;
-    text-shadow: 0 0 15px rgba(234, 88, 12, 0.5), 0 0 30px rgba(124, 58, 237, 0.4);
-    animation: text-glow-pulse 4s ease-in-out infinite;
+.stat-badge {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  min-width: 150px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.stat-badge:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-blue);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.stat-badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: 0.5s;
+}
+.stat-badge:hover::before {
+  left: 100%;
+}
+.stat-badge .stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+  margin: 0;
+  line-height: 1;
+}
+.stat-badge .stat-label {
+  font-size: 0.9rem;
+  color: var(--slate-400);
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-/* Step Headers */
-.step-header {
-    font-size: 1.3rem; 
-    font-weight: 700;
-    color: var(--text-main);
-    margin-bottom: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    animation: fade-in-up 0.8s ease-out 0.8s backwards, text-glow-pulse 3s ease-in-out infinite;
-}
-.step-number {
-    background: linear-gradient(135deg, #ea580c, #f97316);
-    color: white;
-    width: 32px; 
-    height: 32px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1rem;
-    font-weight: 800;
-    box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
-}
 
-/* --- JOB CARD --- */
+/* ==========================================================================
+   4. CONTENT CARDS, LISTS & AI INSIGHTS (FIXED)
+   ========================================================================== */
+
+/* --- MAIN JOB CARD --- */
 .job-card {
     background-color: var(--card-bg);
     border-radius: 16px; 
@@ -145,11 +314,16 @@
     display: flex;
     flex-direction: column;
     gap: 0.8rem; 
+    
+    /* Layering Fix: Ensure this sits above background but below header */
+    position: relative;
+    z-index: 1; 
 }
+
 .job-card:hover {
-    border-color: var(--orange-brand);
+    border-color: var(--blue-brand);
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -12px rgba(249, 115, 22, 0.15);
+    box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.15);
 }
 
 /* Typography */
@@ -169,24 +343,6 @@
     margin-top: 0.3rem;
     margin-bottom: 1rem; 
 }
-
-/* Section Dividers */
-.section-title {
-    color: var(--orange-brand); 
-    font-size: 1rem; 
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-weight: 800;
-    margin-top: 0.8rem;
-    margin-bottom: 0.6rem; 
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    border-bottom: 2px solid var(--orange-border);
-    padding-bottom: 0.4rem;
-    width: 100%;
-}
-
 .summary-text {
     font-size: 1.1rem; 
     line-height: 1.6; 
@@ -196,37 +352,140 @@
     text-align: left;
 }
 
-/* --- LISTS (FIXED ALIGNMENT) --- */
+/* Section Dividers */
+.section-title {
+    color: var(--blue-brand);
+    font-size: 1rem; 
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 800;
+    margin-top: 0.8rem;
+    margin-bottom: 0.6rem; 
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-bottom: 2px solid var(--blue-border);
+    padding-bottom: 0.4rem;
+    width: 100%;
+}
+
+/* --- LISTS (FIXED: Pure CSS Tech Dots) --- */
 ul.clean-list { 
     list-style-type: none; 
     padding: 0; 
     margin: 0; 
 }
+
 ul.clean-list li {
     display: flex; 
-    align-items: flex-start; 
-    gap: 0.8rem; 
-    margin-bottom: 0.6rem; 
-    color: var(--text-main);
-    font-size: 1.05rem; 
+    align-items: flex-start;
+    gap: 12px; /* Space between dot and text */
+    margin-bottom: 8px;
     line-height: 1.5;
+    color: var(--text-main);
+    font-size: 1.05rem;
     opacity: 0.95;
 }
+
+/* The Fix: Replaced character with a CSS Circle Shape */
 ul.clean-list li::before {
-    content: "✦"; 
-    flex-shrink: 0; 
-    font-size: 1rem;
-    line-height: 1.5rem; 
-    color: var(--orange-brand);
-    margin-top: 0px; 
+    content: ""; /* Empty string = no weird symbols */
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin-top: 9px; /* Aligns with first line of text */
+    border-radius: 50%; /* Makes it a perfect circle */
+    
+    background-color: var(--blue-brand);
+    box-shadow: 0 0 8px var(--blue-brand); /* Blue Glow */
 }
 
-/* Badges */
+/* --- AI INSIGHT BOX (Categorized Layout) --- */
+.ai-insight-card {
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.01) 100%);
+    border: 1px solid var(--blue-border);
+    border-radius: 12px;
+    padding: 2.5rem 2rem 2rem 2rem; /* Extra top padding for label */
+    margin-top: 1.5rem;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s;
+    width: 100%;
+    z-index: 2; /* Ensures it sits on top */
+}
+
+/* Sub-Categories (Boxes & Lines) */
+.insight-category {
+    border-left: 3px solid var(--blue-brand); /* The vertical line */
+    background: rgba(59, 130, 246, 0.03);     /* Subtle distinctive background */
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 0 8px 8px 0;
+}
+
+.insight-category h4 {
+    color: var(--blue-brand);
+    margin: 0 0 0.5rem 0;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    font-weight: 800;
+}
+
+.insight-category p {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-main);
+    line-height: 1.6;
+}
+
+/* --- CULTURE BOX (Fixed Blue) --- */
+.culture-box {
+    /* Hardcoded Blue/Cyan Gradient with higher opacity */
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%) !important;
+    border: 1px solid #3b82f6 !important;
+    border-radius: 12px;
+    padding: 1.5rem; 
+    margin-top: 1.5rem;
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1) !important;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* Paper Document */
+.paper-doc {
+  background-color: #ffffff;
+  color: #1e293b;
+  padding: 2rem;
+  border-radius: 2px;
+  font-family: "Times New Roman", serif;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  margin-top: 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+}
+.paper-header {
+  border-bottom: 1px solid #cbd5e1;
+  padding-bottom: 0.8rem;
+  margin-bottom: 1.2rem;
+  font-family: "Arial", sans-serif;
+  color: #334155;
+  font-size: 0.85rem;
+}
+
+
+/* ==========================================================================
+   5. UI COMPONENTS (Badges & Visuals)
+   ========================================================================== */
+
+/* Tags & Badges */
 .tech-tag {
     display: inline-block;
     background: var(--card-bg);
-    color: var(--orange-brand);
-    border: 1px solid var(--orange-border);
+    color: var(--blue-brand); /* CHANGED */
+    border: 1px solid var(--blue-border); /* CHANGED */
     padding: 0.4rem 0.9rem; 
     border-radius: 8px;
     font-family: monospace;
@@ -236,45 +495,34 @@ ul.clean-list li::before {
 }
 .soft-tag {
     display: inline-block;
-    background: var(--orange-light);
+    background: var(--blue-light); /* CHANGED */
     color: var(--text-main);
-    border: 1px solid var(--orange-border);
+    border: 1px solid var(--blue-border); /* CHANGED */
     padding: 0.4rem 0.9rem; 
     border-radius: 99px;
     font-size: 0.95rem; 
     margin: 0 0.4rem 0.4rem 0;
 }
-
-/* Culture Box */
-.culture-box {
-    background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
-    border: 1px solid var(--orange-border);
-    border-radius: 12px;
-    padding: 1.2rem; 
-    margin-top: 1rem;
+.meta-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
+}
+.meta-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.2rem; 
+    border-radius: 50px; 
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: rgba(128,128,128, 0.1); 
+    border: 1px solid rgba(128,128,128, 0.2);
+    color: var(--text-main);
 }
 
-/* AI Insight Section */
-.ai-insight-card {
-    background: var(--card-bg); 
-    border-radius: 12px;
-    padding: 1.8rem; 
-    margin-top: 1.2rem;
-    border: 1px solid var(--orange-border);
-    animation: fadeIn 0.5s;
-    width: 100%;
-}
-.ai-insight-card p {
-    margin-bottom: 1rem; 
-    line-height: 1.6;
-}
-.ai-insight-card ul {
-    margin-left: 1.5rem; 
-    margin-bottom: 1rem;
-}
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* Score Badge */
+/* Score Visualization */
 .score-badge {
     background: var(--card-bg);
     border: 3px solid; 
@@ -295,53 +543,15 @@ ul.clean-list li::before {
 .med-match { color: #f59e0b; border-color: #f59e0b; }
 .low-match { color: #ef4444; border-color: #ef4444; }
 
-/* Meta Badges */
-.meta-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-bottom: 1.5rem;
-}
-.meta-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1.2rem; 
-    border-radius: 50px; 
-    font-size: 0.9rem;
-    font-weight: 600;
-    background: rgba(128,128,128, 0.1); 
-    border: 1px solid rgba(128,128,128, 0.2);
-    color: var(--text-main);
-}
 
-/* Paper Doc */
-.paper-doc {
-    background-color: #ffffff;
-    color: #1e293b;
-    padding: 2rem; 
-    border-radius: 2px;
-    font-family: 'Times New Roman', serif;
-    line-height: 1.5;
-    white-space: pre-wrap;
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e2e8f0;
-    font-size: 1rem;
-}
-.paper-header {
-    border-bottom: 1px solid #cbd5e1;
-    padding-bottom: 0.8rem;
-    margin-bottom: 1.2rem;
-    font-family: 'Arial', sans-serif;
-    color: #334155;
-    font-size: 0.85rem;
-}
+/* ==========================================================================
+   6. BUTTONS & INTERACTIVE ELEMENTS
+   ========================================================================== */
 
-/* --- MAGICAL BUTTONS --- */
+/* Standard Streamlit Buttons */
 .stButton > button {
-    background: linear-gradient(90deg, #ea580c, #db2777, #7c3aed, #ea580c) !important;
+    /* CHANGED: Gradient to Blue -> Cyan -> Purple -> Blue */
+    background: linear-gradient(90deg, #2563eb, #06b6d4, #7c3aed, #2563eb) !important;
     background-size: 300% 100% !important;
     animation: gradient-move 4s ease infinite !important;
     
@@ -357,26 +567,27 @@ ul.clean-list li::before {
     letter-spacing: 0.5px !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
     
-    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4) !important;
+    /* CHANGED: Shadow to Blue */
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4) !important;
     position: relative !important;
     overflow: hidden !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
 }
-
 .stButton > button:hover {
     transform: translateY(-3px) scale(1.02) !important;
-    box-shadow: 0 10px 30px rgba(219, 39, 119, 0.5) !important; 
+    /* CHANGED: Shadow to Cyan/Blue */
+    box-shadow: 0 10px 30px rgba(6, 182, 212, 0.5) !important; 
     filter: brightness(1.1) !important;
 }
-
 .stButton > button:active {
     transform: translateY(0px) scale(0.98) !important;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
 }
 
-/* Apply Button */
+/* Primary Link (Apply) Button */
 .stLinkButton > a {
-    background: linear-gradient(90deg, #ea580c, #f97316, #ea580c) !important;
+    /* CHANGED: Gradient Blue */
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb) !important;
     background-size: 200% 100% !important;
     animation: gradient-move 3s ease infinite !important;
     
@@ -390,26 +601,202 @@ ul.clean-list li::before {
     text-decoration: none !important;
     display: block !important;
     border: none !important;
-    box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.5) !important;
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.5) !important;
     transition: transform 0.2s, box-shadow 0.2s !important;
     text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
 }
-
 .stLinkButton > a:hover {
     transform: translateY(-3px) !important;
-    box-shadow: 0 15px 30px -5px rgba(234, 88, 12, 0.6) !important;
+    box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.6) !important;
 }
 
-/* Mobile */
+/* Hero CTA Button (Epic Version) */
+.hero-cta-container {
+  position: relative;
+  z-index: 1;
+  margin-top: 2rem;
+  animation: fadeIn 1s ease-out 2s both;
+}
+.hero-cta-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: linear-gradient(
+    135deg,
+    var(--primary-blue) 0%,
+    var(--primary-blue-dark) 50%,
+    var(--primary-blue) 100%
+  );
+  color: white !important;
+  border: none !important;
+  border-radius: 16px !important;
+  padding: 1.5rem 4rem !important;
+
+  font-size: 1.8rem !important;
+  font-weight: 800 !important;
+  text-decoration: none !important;
+  letter-spacing: 1px;
+
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 10px 40px rgba(59, 130, 246, 0.4),
+    0 0 60px rgba(59, 130, 246, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.1) !important;
+
+  position: relative;
+  overflow: hidden;
+  min-width: 500px;
+  text-transform: uppercase;
+}
+.hero-cta-button::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(transparent, rgba(255, 255, 255, 0.1), transparent 30%);
+  animation: rotate 4s linear infinite;
+  z-index: 0;
+}
+.hero-cta-button::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-dark) 50%, var(--primary-blue) 100%);
+  border-radius: 14px;
+  z-index: 1;
+}
+.hero-cta-button span {
+  position: relative;
+  z-index: 2;
+}
+.hero-cta-button:hover {
+  transform: translateY(-5px) scale(1.05) rotateX(5deg) !important;
+  box-shadow: 0 20px 60px rgba(59, 130, 246, 0.6), 0 0 100px rgba(59, 130, 246, 0.3), inset 0 0 30px rgba(255, 255, 255, 0.2) !important;
+  animation: pulse 2s ease-in-out infinite !important;
+}
+.hero-cta-button:active {
+  transform: translateY(-2px) scale(0.98) !important;
+}
+.hero-cta-button .rocket-icon {
+  font-size: 2rem;
+  animation: floatUp 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.5));
+}
+
+
+/* ==========================================================================
+   7. FOOTER & NAVIGATION
+   ========================================================================== */
+
+/* Footer */
+.footer-container {
+    text-align: center;
+    padding: 1rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #ffffff;
+    /* CHANGED: Glow to Blue/Purple */
+    text-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 0 30px rgba(124, 58, 237, 0.4);
+    animation: text-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Step Headers */
+.step-header {
+    font-size: 1.3rem; 
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    animation: fade-in-up 0.8s ease-out 0.8s backwards, text-glow-pulse 3s ease-in-out infinite;
+}
+.step-number {
+    /* CHANGED: Gradient Blue */
+    background: linear-gradient(135deg, #2563eb, #06b6d4);
+    color: white;
+    width: 32px; 
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 800;
+    box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+}
+
+/* Scroll Indicator */
+.scroll-indicator {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  animation: bounce 2s ease-in-out infinite;
+  z-index: 1;
+}
+.scroll-indicator .chevron {
+  width: 30px;
+  height: 5px;
+  background: var(--primary-blue);
+  position: relative;
+  margin: 0 auto;
+}
+.scroll-indicator .chevron::before,
+.scroll-indicator .chevron::after {
+  content: "";
+  position: absolute;
+  width: 20px;
+  height: 5px;
+  background: var(--primary-blue);
+  top: -6px;
+}
+.scroll-indicator .chevron::before {
+  left: 0;
+  transform: rotate(45deg);
+}
+.scroll-indicator .chevron::after {
+  right: 0;
+  transform: rotate(-45deg);
+}
+
+
+/* ==========================================================================
+   8. MEDIA QUERIES (MOBILE)
+   ========================================================================== */
+
+/* Mobile Mix */
 @media (max-width: 768px) {
+    /* Banner Resizing */
     .top-banner { min-height: 300px !important; padding: 2rem 1rem !important; }
-    .top-banner h1 { font-size: 3rem !important; }
+    .top-banner h1 { font-size: 3rem !important; letter-spacing: -1px; }
+    .top-banner h1::after { font-size: 2rem; right: -40px; top: -20px; }
     .top-banner p { font-size: 1rem !important; }
-    
+    .top-banner .subtitle { font-size: 1.2rem; }
+
+    /* Card Resizing */
     .job-card { padding: 1.2rem !important; margin: 1rem 0 !important; border-radius: 12px !important; }
     .job-title { font-size: 1.8rem !important; }
+    
+    /* Stats & Scores */
     .score-badge { padding: 0.8rem !important; min-width: 80px !important; margin-top: 1rem; }
     .score-val { font-size: 2rem !important; }
+    .hero-stats { flex-wrap: wrap; gap: 1rem; }
+    .stat-badge { min-width: 120px; padding: 1rem 1.5rem; }
+    .stat-badge .stat-number { font-size: 2rem; }
+
+    /* Buttons */
     .stButton > button { width: 100% !important; margin-bottom: 0.8rem !important; }
     .stLinkButton > a { width: 100% !important; text-align: center !important; }
+    .hero-cta-button { font-size: 1.4rem !important; padding: 1.2rem 2.5rem !important; min-width: 300px; }
 }
+
+@media (max-width: 480px) {
+  .top-banner h1 { font-size: 2.8rem; }
+  .hero-cta-button { font-size: 1.2rem !important; padding: 1rem 2rem !important; min-width: 250px; }
+  .hero-stats { flex-direction: column; align-items: center; }
+}
+
