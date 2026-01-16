@@ -489,7 +489,7 @@ def get_ai_analysis(job_description, job_title, employer_name):
             model="llama-3.1-8b-instant", 
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             temperature=0.1,
-            max_tokens=2000,
+            max_tokens=3000,
         )
         
         response_text = completion.choices[0].message.content
@@ -719,35 +719,9 @@ if st.session_state.resume_uploaded:
 # --- STEP 3: MATCHED RESULTS ---
 if not st.session_state.matches_df.empty:
     st.markdown("---")
-    st.markdown('<div class="step-header"> Matched Roles</div>', unsafe_allow_html=True)
-    
-    if lottie_success:
-        st_lottie(lottie_success, height=120, key="success_anim", loop=False)
+    st.markdown('<div class="step-header"><div class="step-number">3</div> Matched Roles</div>', unsafe_allow_html=True)
     
     st.success(f"🎉 Found {len(st.session_state.matches_df)} jobs matching your resume!")
-
-    # --- PLOTLY: MARKET INSIGHTS ---
-    # Create a simple salary distribution chart if salary data exists
-    valid_salaries = st.session_state.matches_df[st.session_state.matches_df['salary_min'].notnull()]
-    if not valid_salaries.empty:
-        try:
-            fig = px.bar(
-                valid_salaries, 
-                x='employer_name', 
-                y='salary_min', 
-                color='match_score',
-                title='💰 Market Salary Analysis (Min Base)',
-                labels={'salary_min': 'Minimum Salary ($)', 'employer_name': 'Company'},
-                color_continuous_scale='Oranges'
-            )
-            fig.update_layout(
-                plot_bgcolor='rgba(0,0,0,0)',
-                paper_bgcolor='rgba(0,0,0,0)',
-                font_color='#ffffff'
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        except Exception:
-            pass # Skip chart if error
 
     for idx, row in st.session_state.matches_df.iterrows():
         score = row.get('match_score', 0)
@@ -757,26 +731,19 @@ if not st.session_state.matches_df.empty:
         location_txt = row.get('location_display', 'Remote')
         job_id = row.get('job_id', f"job_{idx}")
         
-        # Determine colors for score
-        if score >= 80:
-            score_class = "high-match"
-        elif score >= 60:
-            score_class = "med-match"
-        else:
-            score_class = "low-match"
-        
         # --- RENDER JOB CARD ---
-        st.markdown(f'<div class="job-card">', unsafe_allow_html=True)
+        st.markdown('<div class="job-card">', unsafe_allow_html=True)
         
-        # Header Row
-        col_a, col_b = st.columns([3, 1])
-        with col_a:
+        # 1. Header Row
+        c1, c2 = st.columns([3, 1])
+        with c1:
             st.markdown(f"<div class='job-title'>{job_title_txt}</div>", unsafe_allow_html=True)
             st.markdown(f"<div class='company-name'>🏢 {employer}</div>", unsafe_allow_html=True)
         
-        with col_b:
+        with c2:
+            s_class = "high-match" if score >= 75 else "med-match" if score >= 50 else "low-match"
             st.markdown(f"""
-            <div class='score-badge {score_class}'>
+            <div class='score-badge {s_class}'>
                 <div class='score-val'>{score:.0f}%</div>
                 <div class='score-lbl'>Match</div>
             </div>
@@ -784,7 +751,7 @@ if not st.session_state.matches_df.empty:
         
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Meta Badges
+        # 2. Meta Badges
         st.markdown(f"""
         <div class='meta-container'>
             <div class='meta-badge'>📍 {location_txt}</div>
@@ -793,83 +760,125 @@ if not st.session_state.matches_df.empty:
         </div>
         """, unsafe_allow_html=True)
         
-        # AI Insights
+        # 3. AI Insights Logic
         ai_data = st.session_state.ai_results.get(job_id)
         
         if ai_data:
-            if "⚠️" not in ai_data.get('summary', ''):
+            st.markdown('<div class="ai-insight-card">', unsafe_allow_html=True)
+            
+            if "⚠️" in ai_data.get('summary', ''):
+                    st.markdown(f"<div class='summary-text' style='color:#fca5a5;'>{ai_data.get('summary')}</div>", unsafe_allow_html=True)
+            else:
+                # Executive Summary
                 st.markdown(f"""
-                <div style="background: rgba(255,255,255,0.05); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem; border: 1px solid rgba(255,255,255,0.1);">
-                    <div style="color: #ff6b00; font-weight: 800; margin-bottom: 0.5rem; text-transform: uppercase;">📝 Executive Summary</div>
-                    <div style="color: #cbd5e1; line-height: 1.6;">{ai_data.get('summary')}</div>
+                <div class='section-title'>📝 Executive Summary</div>
+                <div class='summary-text'>
+                    {ai_data.get('summary')}
+                    <br><br>
+                    <em>🎯 <strong>Why this role?</strong> {ai_data.get('role_intent')}</em>
                 </div>
                 """, unsafe_allow_html=True)
                 
+                # Tech Stack
                 tech = ai_data.get('tech_stack', [])
                 if tech:
-                    tech_html = "".join([f'<span class="tech-tag">{t}</span>' for t in tech[:8]])
-                    st.markdown(f"<div style='margin-bottom: 1.5rem;'>{tech_html}</div>", unsafe_allow_html=True)
-                
-                col_l, col_r = st.columns(2)
-                with col_l:
+                    st.markdown(f"<div class='section-title'>💻 Tech Stack</div>", unsafe_allow_html=True)
+                    tech_html = "".join([f"<span class='tech-tag'>{t}</span>" for t in tech])
+                    st.markdown(f"<div style='margin-bottom:2rem;'>{tech_html}</div>", unsafe_allow_html=True)
+
+                # Columns: Responsibilities vs Requirements
+                col_left, col_right = st.columns(2)
+                with col_left:
                     reqs = ai_data.get('key_responsibilities', [])
                     if reqs:
-                        list_html = "".join([f'<li style="margin-bottom:0.5rem;">{r}</li>' for r in reqs[:4]])
-                        st.markdown(f"<div style='color:#ff6b00; font-weight:700; margin-bottom:0.5rem;'>📋 Responsibilities</div><ul style='color:#cbd5e1; padding-left:1.2rem;'>{list_html}</ul>", unsafe_allow_html=True)
-                with col_r:
+                        list_html = "".join([f"<li>{r}</li>" for r in reqs]) 
+                        st.markdown(f"<div class='section-title'>📋 Responsibilities</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
+                with col_right:
                     must_haves = ai_data.get('requirements', [])
                     if must_haves:
-                        list_html = "".join([f'<li style="margin-bottom:0.5rem;">{r}</li>' for r in must_haves[:4]])
-                        st.markdown(f"<div style='color:#00f3ff; font-weight:700; margin-bottom:0.5rem;'>✅ Requirements</div><ul style='color:#cbd5e1; padding-left:1.2rem;'>{list_html}</ul>", unsafe_allow_html=True)
-            else:
-                st.error(ai_data.get('summary'))
+                        list_html = "".join([f"<li>{r}</li>" for r in must_haves]) 
+                        st.markdown(f"<div class='section-title'>✅ Requirements</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
+
+                # Education & Soft Skills
+                st.markdown("<br>", unsafe_allow_html=True)
+                c3, c4 = st.columns(2)
+                with c3:
+                    ed = ai_data.get('education_cert', 'Not specified')
+                    st.markdown(f"<div class='section-title'>🎓 Education</div><div style='color:var(--text-main); opacity:0.8;'>{ed}</div>", unsafe_allow_html=True)
+                with c4:
+                    soft = ai_data.get('soft_skills', [])
+                    if soft:
+                        st.markdown(f"<div class='section-title'>🤝 Soft Skills</div>", unsafe_allow_html=True)
+                        soft_html = "".join([f"<span class='soft-tag'>{s}</span>" for s in soft])
+                        st.markdown(f"<div>{soft_html}</div>", unsafe_allow_html=True)
+
+                # Culture & Benefits Box
+                st.markdown(f"""
+                <div class='culture-box'>
+                    <div class='section-title' style='color:#f97316; border-color:#f97316;'>🎁 Benefits & Culture</div>
+                    <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
+                        <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
+                        <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>
+                    </div>
+                    <div style='margin-top:1rem; opacity:0.8; font-style:italic;'>
+                        "{ai_data.get('culture_vibe', 'Standard corporate culture.')}"
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
         else:
-            col_x, col_y = st.columns(2)
-            with col_x:
-                if st.button(f"✨ AI Deep Dive", key=f"ai_{idx}", use_container_width=True):
-                    if GROQ_ENABLED:
-                        with st.spinner("🤖 Analyzing job details..."):
-                            result = get_ai_analysis(job_desc, job_title_txt, employer)
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
+                if GROQ_ENABLED:
+                    with st.spinner("🤖 Deep diving into job details..."):
+                        result = get_ai_analysis(job_desc, job_title_txt, employer)
+                        if result:
                             st.session_state.ai_results[job_id] = result
                             st.rerun()
-                    else:
-                        st.warning("⚠️ Add GROQ_API_KEY to .env")
+                        else:
+                            st.error("Analysis Failed")
+                else:
+                    st.warning("⚠️ Add GROQ_API_KEY to .env")
 
-        # Cover Letter
+        # --- COVER LETTER SECTION ---
         cl_text = st.session_state.cover_letters.get(job_id)
         if cl_text:
-            st.markdown(f"""
-            <div style="background: #fdfbf7; color: #1e293b; padding: 2rem; border-radius: 4px; margin: 1.5rem 0; font-family: 'Times New Roman', serif;">
-                <div style="border-bottom: 1px solid #cbd5e1; padding-bottom: 0.5rem; margin-bottom: 1rem; font-family: sans-serif; font-size: 0.8rem; color: #64748b;">DRAFT PREVIEW</div>
-                <div style="white-space: pre-wrap; font-size: 1rem; line-height: 1.6;">{cl_text[:600]}...</div>
-            </div>
-            """, unsafe_allow_html=True)
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("### 📝 Draft Cover Letter")
+            tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
+            
+            with tab_preview:
+                st.markdown(f"<div class='paper-doc'><div class='paper-header'>DRAFT DOCUMENT</div>{cl_text}</div>", unsafe_allow_html=True)
+            
+            with tab_edit:
+                edited_cl = st.text_area("Edit:", value=cl_text, height=400, key=f"edit_cl_{idx}")
+                if st.button("💾 Save Edits", key=f"save_cl_{idx}"):
+                    st.session_state.cover_letters[job_id] = edited_cl
+                    st.rerun()
 
-        # Buttons
-        st.markdown("<div style='margin-top: 1.5rem;'>", unsafe_allow_html=True)
-        col_btn1, col_btn2 = st.columns([1, 1])
+            st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
         
-        with col_btn1:
-            lbl = "✍️ Write Cover Letter" if not cl_text else "🔄 Regenerate Letter"
-            if st.button(lbl, key=f"cl_{idx}", use_container_width=True):
+        # Footer Buttons
+        st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
+        col_b1, col_b2 = st.columns([1, 1])
+        with col_b1:
+            lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
+            if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
                 if GROQ_ENABLED:
-                    with st.spinner("Writing..."):
-                        letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
+                        with st.spinner("✍️ Writing evidence-based letter..."):
+                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
                         st.session_state.cover_letters[job_id] = letter
                         st.rerun()
                 else:
-                    st.warning("Enable AI first")
-        
-        with col_btn2:
+                        st.warning("⚠️ Enable AI to use this.")
+        with col_b2:
             if row.get('job_apply_link'):
-                st.link_button("🚀 Apply Now", row['job_apply_link'], use_container_width=True)
+                st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
         
         st.markdown("</div></div>", unsafe_allow_html=True) # End Job Card
 
 # Footer
 st.markdown("---")
-st.markdown("""
-<div class='footer-container'>
-    Turn skills into offers • Automate Your Job Search
-</div>
-""", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; opacity: 0.7;'>Resume Matcher • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
