@@ -9,7 +9,7 @@
     --text-main: var(--text-color);
 }
 
-/* --- ANIMATION KEYFRAMES (UNCHANGED) --- */
+/* --- ANIMATIONS --- */
 @keyframes liquid-flow {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -33,43 +33,67 @@
     50% { text-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 10px rgba(249, 115, 22, 0.4); }
     100% { text-shadow: 0 0 5px rgba(249, 115, 22, 0.2); }
 }
+@keyframes gradient-move {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
 
-/* --- TOP BANNER (UNCHANGED) --- */
+/* --- TOP BANNER (DOMINANT & CENTRALIZED) --- */
 .top-banner {
-    text-align: center; 
-    padding: 3.5rem 0; 
+    /* Flexbox for perfect centering */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    
+    /* Increased height for dominance */
+    min-height: 400px; 
+    padding: 4rem 1rem; 
+    
     background: linear-gradient(120deg, #ea580c, #c2410c, #7c3aed, #4f46e5);
     background-size: 200% 200%;
-    border-radius: 0 0 40px 40px; 
-    margin-bottom: 2.5rem; 
+    border-radius: 0 0 50px 50px; 
+    margin-bottom: 3rem; 
+    
     animation: 
         slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
         liquid-flow 20s ease infinite,
         levitate-smooth 6s ease-in-out infinite;
+        
     will-change: background-position, transform, margin-top;
     position: relative;
     z-index: 10;
-    box-shadow: 0 20px 40px -12px rgba(79, 70, 229, 0.4);
+    box-shadow: 0 25px 60px -15px rgba(79, 70, 229, 0.5);
 }
+
 .top-banner h1 {
     color: white !important; 
     margin: 0; 
-    font-size: 3.5rem; 
-    font-weight: 800;
-    text-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-    letter-spacing: -2px;
-}
-.top-banner p {
-    color: rgba(255,255,255,0.85) !important; 
-    margin-top: 0.5rem; 
-    font-size: 1rem; 
-    font-weight: 500;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    opacity: 0.9;
+    /* MASSIVE FONT SIZE */
+    font-size: 5.5rem; 
+    font-weight: 900;
+    line-height: 1.1;
+    text-align: center;
+    
+    /* Strong shadow to pop against background */
+    text-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+    letter-spacing: -3px;
 }
 
-/* Footer (UNCHANGED) */
+.top-banner p {
+    color: rgba(255,255,255,0.95) !important; 
+    margin-top: 1rem; 
+    /* Larger Subtext */
+    font-size: 1.4rem; 
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-align: center;
+    text-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+/* Footer */
 .footer-container {
     text-align: center;
     padding: 1rem;
@@ -82,7 +106,7 @@
     animation: text-glow-pulse 4s ease-in-out infinite;
 }
 
-/* Step Headers (UNCHANGED) */
+/* Step Headers */
 .step-header {
     font-size: 1.3rem; 
     font-weight: 700;
@@ -107,32 +131,31 @@
     box-shadow: 0 4px 10px rgba(234, 88, 12, 0.3);
 }
 
-/* --- JOB CARD (OPTIMIZED & ORGANIZED) --- */
+/* --- JOB CARD --- */
 .job-card {
     background-color: var(--card-bg);
-    border-radius: 12px; 
-    padding: 1.5rem; /* Increased padding to frame content better */
-    margin: 0.8rem 0; 
+    border-radius: 16px; 
+    padding: 2rem; 
+    margin: 1.5rem 0; 
     border: 1px solid var(--gray-border);
-    /* Subtle shadow for depth */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
     will-change: transform;
     animation: fade-in-up 0.8s ease-out 1.0s backwards;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem; /* Controls vertical rhythm */
+    gap: 0.8rem; 
 }
 .job-card:hover {
     border-color: var(--orange-brand);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 24px -8px rgba(249, 115, 22, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 0 20px 40px -12px rgba(249, 115, 22, 0.15);
 }
 
-/* Tighter, More Organized Text Headers */
+/* Typography */
 .job-title {
     color: var(--text-main);
-    font-size: 1.8rem; 
+    font-size: 2.2rem; 
     font-weight: 800;
     margin: 0;
     line-height: 1.1;
@@ -140,122 +163,133 @@
 }
 .company-name {
     color: var(--text-main);
-    opacity: 0.85;
-    font-size: 1.1rem; 
+    opacity: 0.9;
+    font-size: 1.3rem; 
     font-weight: 600;
-    margin-top: 0.2rem;
-    margin-bottom: 0.8rem; /* Reduced gap */
+    margin-top: 0.3rem;
+    margin-bottom: 1rem; 
 }
 
-/* Distinct Section Dividers */
+/* Section Dividers */
 .section-title {
     color: var(--orange-brand); 
-    font-size: 0.9rem; 
+    font-size: 1rem; 
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     font-weight: 800;
-    margin-top: 0.5rem;
-    margin-bottom: 0.5rem; 
+    margin-top: 0.8rem;
+    margin-bottom: 0.6rem; 
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    /* Stronger separator line */
+    gap: 0.6rem;
     border-bottom: 2px solid var(--orange-border);
-    padding-bottom: 0.3rem;
+    padding-bottom: 0.4rem;
     width: 100%;
 }
 
 .summary-text {
-    font-size: 1rem;
-    line-height: 1.45; /* Tighter line height for density */
+    font-size: 1.1rem; 
+    line-height: 1.6; 
     color: var(--text-main);
-    margin-bottom: 1rem; 
+    margin-bottom: 1.2rem; 
     font-weight: 400;
     text-align: left;
 }
 
-/* High Density Lists */
-ul.clean-list { list-style-type: none; padding: 0; margin: 0; }
+/* --- LISTS (FIXED ALIGNMENT) --- */
+ul.clean-list { 
+    list-style-type: none; 
+    padding: 0; 
+    margin: 0; 
+}
 ul.clean-list li {
-    position: relative;
-    padding-left: 1.4rem;
-    margin-bottom: 0.3rem; /* Very tight spacing */
+    display: flex; 
+    align-items: flex-start; 
+    gap: 0.8rem; 
+    margin-bottom: 0.6rem; 
     color: var(--text-main);
-    font-size: 0.95rem;
-    line-height: 1.4;
+    font-size: 1.05rem; 
+    line-height: 1.5;
     opacity: 0.95;
 }
 ul.clean-list li::before {
-    content: "▪"; /* Square bullet for tech look */
-    position: absolute;
-    left: 0;
-    font-size: 1.2rem;
-    line-height: 1rem;
+    content: "✦"; 
+    flex-shrink: 0; 
+    font-size: 1rem;
+    line-height: 1.5rem; 
     color: var(--orange-brand);
+    margin-top: 0px; 
 }
 
-/* Badges - Organized Rows */
+/* Badges */
 .tech-tag {
     display: inline-block;
     background: var(--card-bg);
     color: var(--orange-brand);
     border: 1px solid var(--orange-border);
-    padding: 0.25rem 0.75rem; 
-    border-radius: 6px;
+    padding: 0.4rem 0.9rem; 
+    border-radius: 8px;
     font-family: monospace;
-    font-size: 0.85rem;
+    font-size: 0.95rem; 
     font-weight: 700;
-    margin: 0 0.3rem 0.3rem 0; /* Tight grid feel */
+    margin: 0 0.4rem 0.4rem 0; 
 }
 .soft-tag {
     display: inline-block;
     background: var(--orange-light);
     color: var(--text-main);
     border: 1px solid var(--orange-border);
-    padding: 0.25rem 0.75rem; 
+    padding: 0.4rem 0.9rem; 
     border-radius: 99px;
-    font-size: 0.85rem;
-    margin: 0 0.3rem 0.3rem 0;
+    font-size: 0.95rem; 
+    margin: 0 0.4rem 0.4rem 0;
 }
 
-/* Culture/Benefits Box - Filled & Compact */
+/* Culture Box */
 .culture-box {
     background: linear-gradient(135deg, rgba(249, 115, 22, 0.05) 0%, rgba(251, 191, 36, 0.05) 100%);
     border: 1px solid var(--orange-border);
-    border-radius: 8px;
-    padding: 1rem; 
-    margin-top: 0.8rem;
+    border-radius: 12px;
+    padding: 1.2rem; 
+    margin-top: 1rem;
 }
 
-/* AI Insight Section - Filled */
+/* AI Insight Section */
 .ai-insight-card {
     background: var(--card-bg); 
-    border-radius: 10px;
-    padding: 1.2rem;
-    margin-top: 1rem;
+    border-radius: 12px;
+    padding: 1.8rem; 
+    margin-top: 1.2rem;
     border: 1px solid var(--orange-border);
     animation: fadeIn 0.5s;
-    /* Ensure content fills width */
     width: 100%;
+}
+.ai-insight-card p {
+    margin-bottom: 1rem; 
+    line-height: 1.6;
+}
+.ai-insight-card ul {
+    margin-left: 1.5rem; 
+    margin-bottom: 1rem;
 }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Score Badge - Organized Alignment */
+/* Score Badge */
 .score-badge {
     background: var(--card-bg);
-    border: 2px solid;
-    border-radius: 12px;
-    padding: 0.8rem;
+    border: 3px solid; 
+    border-radius: 16px;
+    padding: 1rem;
     text-align: center;
-    min-width: 90px;
-    /* Make it fit nicely in columns */
+    min-width: 110px;
     height: 100%;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
 }
-.score-val { font-size: 2.2rem; font-weight: 900; line-height: 1; margin-bottom: 0; color: var(--text-main); }
-.score-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-main); opacity: 0.7; margin-top: 0.2rem; }
+.score-val { font-size: 2.5rem; font-weight: 900; line-height: 1; margin-bottom: 0; color: var(--text-main); }
+.score-lbl { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); opacity: 0.7; margin-top: 0.3rem; font-weight: 700; }
 
 .high-match { color: #10b981; border-color: #10b981; }
 .med-match { color: #f59e0b; border-color: #f59e0b; }
@@ -265,23 +299,23 @@ ul.clean-list li::before {
 .meta-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.2rem;
+    gap: 0.6rem;
+    margin-bottom: 1.5rem;
 }
 .meta-badge {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.4rem 1rem;
+    padding: 0.5rem 1.2rem; 
     border-radius: 50px; 
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     font-weight: 600;
     background: rgba(128,128,128, 0.1); 
     border: 1px solid rgba(128,128,128, 0.2);
     color: var(--text-main);
 }
 
-/* Paper Doc (UNCHANGED) */
+/* Paper Doc */
 .paper-doc {
     background-color: #ffffff;
     color: #1e293b;
@@ -305,77 +339,77 @@ ul.clean-list li::before {
     font-size: 0.85rem;
 }
 
-/* --- BIGGER, BOLDER ACTION BUTTONS --- */
+/* --- MAGICAL BUTTONS --- */
 .stButton > button {
-    /* Subtle Gradient Background by Default (Not transparent) */
-    background: linear-gradient(180deg, var(--card-bg) 0%, rgba(249, 115, 22, 0.15) 100%) !important;
-    border: 1px solid var(--orange-brand) !important;
-    color: var(--text-main) !important;
+    background: linear-gradient(90deg, #ea580c, #db2777, #7c3aed, #ea580c) !important;
+    background-size: 300% 100% !important;
+    animation: gradient-move 4s ease infinite !important;
     
-    /* Bigger & Bolder */
+    border: none !important;
+    color: white !important; 
+    
     border-radius: 12px !important;
-    font-weight: 800 !important; /* Extra bold text */
-    font-size: 1.1rem !important; /* Larger text */
-    padding: 0.8rem 2rem !important; /* Larger clickable area */
-    min-width: 180px !important; /* Enforce width */
+    font-weight: 800 !important; 
+    font-size: 1.15rem !important; 
+    padding: 0.9rem 2.5rem !important; 
+    min-width: 200px !important; 
     
     letter-spacing: 0.5px !important;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
-    /* Default Shadow to make them pop */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1) !important;
+    
+    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4) !important;
     position: relative !important;
     overflow: hidden !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
 }
 
-/* Hover State: Fills with Bright Gradient */
 .stButton > button:hover {
-    border-color: transparent !important;
-    color: white !important;
-    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%) !important;
-    transform: translateY(-3px) !important;
-    box-shadow: 0 10px 25px rgba(249, 115, 22, 0.4) !important;
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 10px 30px rgba(219, 39, 119, 0.5) !important; 
+    filter: brightness(1.1) !important;
 }
 
-/* Click State */
 .stButton > button:active {
-    transform: translateY(0px) !important;
-    box-shadow: 0 4px 10px rgba(249, 115, 22, 0.2) !important;
+    transform: translateY(0px) scale(0.98) !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2) !important;
 }
 
-/* --- APPLY BUTTON (Primary Link - Bigger) --- */
+/* Apply Button */
 .stLinkButton > a {
-    background: linear-gradient(90deg, #ea580c 0%, #f97316 100%) !important;
-    color: white !important;
+    background: linear-gradient(90deg, #ea580c, #f97316, #ea580c) !important;
+    background-size: 200% 100% !important;
+    animation: gradient-move 3s ease infinite !important;
     
-    /* Matching Size to Action Buttons */
+    color: white !important;
     border-radius: 12px !important;
-    padding: 0.85rem 2.5rem !important; 
-    font-size: 1.1rem !important;
+    padding: 0.9rem 3rem !important; 
+    font-size: 1.15rem !important;
     
     font-weight: 900 !important;
     text-align: center !important;
     text-decoration: none !important;
     display: block !important;
     border: none !important;
-    box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.4) !important;
+    box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.5) !important;
     transition: transform 0.2s, box-shadow 0.2s !important;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2) !important;
 }
 
 .stLinkButton > a:hover {
     transform: translateY(-3px) !important;
-    background: linear-gradient(90deg, #c2410c 0%, #ea580c 100%) !important;
-    box-shadow: 0 15px 25px -5px rgba(234, 88, 12, 0.5) !important;
+    box-shadow: 0 15px 30px -5px rgba(234, 88, 12, 0.6) !important;
 }
 
-/* --- MOBILE OPTIMIZATIONS --- */
+/* Mobile */
 @media (max-width: 768px) {
-    .top-banner h1 { font-size: 2.2rem !important; }
-    .job-card { padding: 1.2rem !important; margin: 0.8rem 0 !important; border-radius: 12px !important; }
-    .job-title { font-size: 1.5rem !important; }
-    .score-badge { padding: 0.6rem !important; min-width: 70px !important; margin-top: 0.8rem; }
-    .score-val { font-size: 1.8rem !important; }
+    .top-banner { min-height: 300px !important; padding: 2rem 1rem !important; }
+    .top-banner h1 { font-size: 3rem !important; }
+    .top-banner p { font-size: 1rem !important; }
     
-    /* Stack buttons on mobile */
+    .job-card { padding: 1.2rem !important; margin: 1rem 0 !important; border-radius: 12px !important; }
+    .job-title { font-size: 1.8rem !important; }
+    .score-badge { padding: 0.8rem !important; min-width: 80px !important; margin-top: 1rem; }
+    .score-val { font-size: 2rem !important; }
     .stButton > button { width: 100% !important; margin-bottom: 0.8rem !important; }
     .stLinkButton > a { width: 100% !important; text-align: center !important; }
 }

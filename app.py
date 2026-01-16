@@ -249,7 +249,6 @@ with st.sidebar:
 # --- STEP 1: UPLOAD RESUME ---
 st.markdown('<div class="step-header"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
 
-
 if not st.session_state.resume_uploaded:
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
     
