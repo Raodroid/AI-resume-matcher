@@ -236,21 +236,49 @@ st.markdown("""
         if (!window[headerKey]) {
             window[headerKey] = true;
             
-            // Fix header height on initial load
+            // FIX: Prevent header expansion - comprehensive cleanup
             function fixHeaderHeight() {
                 const banners = document.querySelectorAll('.top-banner');
+                
+                // Remove duplicate banners (keep only first)
+                if (banners.length > 1) {
+                    for (let i = 1; i < banners.length; i++) {
+                        banners[i].remove();
+                    }
+                }
+                
+                // Fix all remaining banners
                 banners.forEach(function(banner) {
-                    if (banner) {
-                        // Remove any duplicate banners (keep only first)
-                        if (banners.length > 1 && banner !== banners[0]) {
-                            banner.remove();
-                            return;
-                        }
-                        // Force fixed height
+                    if (banner && banner === banners[0]) {
+                        // Force fixed dimensions
                         banner.style.height = '60vh';
                         banner.style.maxHeight = '60vh';
                         banner.style.minHeight = '60vh';
                         banner.style.overflow = 'hidden';
+                        
+                        // FIX: Ensure typing animation wrapper has fixed dimensions
+                        const typingWrapper = banner.querySelector('.typing-subtitle-wrapper');
+                        if (typingWrapper) {
+                            typingWrapper.style.height = '2.5rem';
+                            typingWrapper.style.maxHeight = '2.5rem';
+                            typingWrapper.style.minHeight = '2.5rem';
+                            typingWrapper.style.overflow = 'hidden';
+                            typingWrapper.style.width = '450px';
+                            typingWrapper.style.maxWidth = '450px';
+                        }
+                        
+                        // FIX: Clean up any accumulated DOM nodes in typing subtitle
+                        const typingSubtitle = banner.querySelector('.typing-subtitle');
+                        if (typingSubtitle) {
+                            // Ensure it only has text content, no nested elements
+                            const textContent = typingSubtitle.textContent || typingSubtitle.innerText;
+                            if (textContent && typingSubtitle.children.length > 0) {
+                                // Remove any nested elements that shouldn't be there
+                                while (typingSubtitle.firstChild && typingSubtitle.firstChild.nodeType !== 3) {
+                                    typingSubtitle.removeChild(typingSubtitle.firstChild);
+                                }
+                            }
+                        }
                     }
                 });
             }
