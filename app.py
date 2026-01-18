@@ -27,17 +27,14 @@ st.set_page_config(
 )
 
 # --- 2. LOAD CSS ---
-# STREAMLIT CLOUD FIX: Only inject CSS once to prevent duplicate styles on reruns
-if 'css_loaded' not in st.session_state:
-    def local_css(file_name):
-        try:
-            with open(file_name) as f:
-                st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
-        except FileNotFoundError:
-            st.error(f"⚠️ Could not find {file_name}. Make sure it is in the same folder.")
-    
-    local_css("style.css")
-    st.session_state.css_loaded = True
+def local_css(file_name):
+    try:
+        with open(file_name) as f:
+            st.markdown(f'<style>{f.read()}</style>', unsafe_allow_html=True)
+    except FileNotFoundError:
+        st.error(f"⚠️ Could not find {file_name}. Make sure it is in the same folder.")
+
+local_css("style.css")
 
 # Configure Groq Client
 api_key = os.getenv("GROQ_API_KEY")
