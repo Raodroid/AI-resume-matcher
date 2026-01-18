@@ -238,6 +238,41 @@ body, .stApp {
   50% { transform: translateX(-50%) translateY(-10px); }
 }
 
+/* -- Version 2: Epic Hero Override -- */
+.top-banner {
+  text-align: center;
+  padding: 8rem 2rem 10rem 2rem;
+  margin-bottom: 4rem;
+  position: relative;
+  overflow: hidden;
+
+  /* EXACT UI BACKGROUND */
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+
+  /* Accent Border Bottom */
+  border-bottom: 1px solid var(--glass-border);
+
+  /* Add subtle grid for depth */
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+
+  /* Center content */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  
+  background-size: 200% 200%;
+  border-radius: 0 0 50px 50px; 
+  margin-bottom: 3rem; 
+  
+  animation: 
+    slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
+    liquid-flow 20s ease infinite;
+  
+  box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
+}
 
 /* ==========================================================================
    3. HEADER & HERO SECTION
