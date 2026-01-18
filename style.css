@@ -156,25 +156,16 @@ body, .stApp {
   /* Fixed container to prevent layout shifts */
   display: inline-block;
   position: relative;
-  
-  /* HUGGING FACE FIX: Fixed height to prevent growth */
-  height: 2.5rem; /* Fixed height instead of min-height */
-  max-height: 2.5rem; /* Prevent growth */
-  min-height: 2.5rem; /* Ensure minimum */
-  
+  min-height: 2.5rem; /* Reserve space for text */
   margin: 1.5rem 0 3rem;
   z-index: 2; /* Above background, below header text */
   
   /* CRITICAL: Reserve fixed width to prevent layout shifts */
   width: 450px; /* Fixed width - prevents any layout shifts */
-  max-width: 450px; /* HUGGING FACE FIX: Prevent width growth */
   text-align: center;
   
   /* Ensure container doesn't resize */
   box-sizing: border-box;
-  
-  /* HUGGING FIX: Prevent overflow that could cause growth */
-  overflow: hidden;
 }
 
 /* --- APPLYING TO ELEMENT --- */
@@ -190,10 +181,6 @@ body, .stApp {
   white-space: nowrap;
   position: relative;
   width: 100%;
-  
-  /* HUGGING FACE FIX: Prevent layout shifts from typing animation */
-  box-sizing: border-box;
-  contain: layout style; /* CSS containment */
   
   /* Animation using clip-path (doesn't affect layout) */
   animation: smoothTypingCycle 12s steps(60, end) infinite;
@@ -224,7 +211,7 @@ body, .stApp {
   40% { transform: translateY(-20px) scale(1.05); opacity: 0.9; filter: blur(2px); }
   60% { transform: translateY(10px) scale(1.02); opacity: 0.95; filter: blur(1px); }
   80% { transform: translateY(-5px) scale(1.01); opacity: 0.98; filter: blur(0.5px); }
-  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); } /* HUGGING FACE FIX: Explicit 0px ensures clean state in production */
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0); }
 }
 @keyframes floatUp {
   0% { transform: translateY(100px) rotate(0deg); opacity: 0; }
@@ -251,7 +238,7 @@ body, .stApp {
   padding: 8rem 2rem 10rem 2rem;
   margin-bottom: 4rem;
   position: relative;
-  overflow: hidden; /* HUGGING FACE FIX: Prevent content overflow */
+  overflow: hidden;
 
   /* EXACT UI BACKGROUND */
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
@@ -269,31 +256,22 @@ body, .stApp {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  
-  /* HUGGING FACE FIX: Fixed height constraints to prevent growth */
-  height: 60vh; /* Fixed height instead of min-height */
-  max-height: 60vh; /* Prevent growth beyond viewport */
-  min-height: 60vh; /* Ensure minimum for content */
-  
+  min-height: 60vh;
   background-size: 200% 200%;
   border-radius: 0 0 50px 50px; 
   margin-bottom: 3rem; 
   
   animation: 
     slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-    liquid-flow 20s ease infinite;
-    /* HUGGING FACE FIX: Removed levitate-smooth (uses transform) to prevent layout shifts */
+    liquid-flow 20s ease infinite,
+    levitate-smooth 6s ease-in-out infinite;
     
-  will-change: background-position; /* HUGGING FACE FIX: Removed transform from will-change */
+  will-change: background-position, transform, margin-top;
   
   /* Z-INDEX FIX: Header always on top */
   position: relative;
   z-index: 100;
   isolation: isolate; /* Create new stacking context */
-  
-  /* HUGGING FACE FIX: Prevent any layout shifts from children */
-  box-sizing: border-box;
-  contain: layout style; /* CSS containment to prevent layout thrashing */
   
   box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
 }
@@ -311,38 +289,14 @@ body, .stApp {
   /* Z-INDEX FIX: Header text above all other elements */
   position: relative;
   z-index: 101; /* Above typing subtitle and background */
-  
-  /* HUGGING FACE FIX: Ensure blur from epicEntrance animation doesn't persist in production */
-  /* Animation ends with filter: blur(0px) at 100%, but ensure it's clean in all builds */
-  /* Note: !important here would break the animation, so we rely on animation completion */
-  
-  /* HUGGING FACE FIX: Prevent layout shifts from header text */
-  box-sizing: border-box;
-  contain: layout style; /* CSS containment to prevent layout thrashing */
 
-  /* Gradient text with shimmer */
-  background: linear-gradient(
-    90deg,
-    var(--slate-200) 0%,
-    var(--primary-blue) 20%,
-    var(--info-cyan) 40%,
-    var(--primary-blue) 60%,
-    var(--slate-200) 80%,
-    var(--primary-blue) 100%
-  );
-  background-size: 300% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+
 
   /* Combined animations */
   animation: 
     epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     gradientShimmer 8s linear infinite,
     glowPulse 4s ease-in-out infinite;
-  
-  /* HUGGING FACE FIX: Force filter reset after animation to prevent blur persistence */
-  animation-fill-mode: forwards;
 
   /* 3D text effect */
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1),
