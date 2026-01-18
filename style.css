@@ -66,6 +66,15 @@ body, .stApp {
   background: transparent;
 }
 
+/* CRITICAL FIX: Ensure Streamlit containers don't interfere with header stacking */
+[data-testid="stAppViewContainer"],
+.stApp > div {
+  /* Prevent transforms or filters on Streamlit containers that could affect header */
+  filter: none !important;
+  backdrop-filter: none !important;
+  transform: none !important;
+}
+
 
 /* ==========================================================================
    2. ANIMATION KEYFRAMES
@@ -159,7 +168,8 @@ body, .stApp {
   min-height: 2.5rem; /* Reserve space for text */
   margin: 1.5rem 0 3rem;
   
-  /* Z-INDEX FIX: Explicitly below header text */
+  /* CRITICAL FIX: Explicit z-index with position for production-safe stacking */
+  position: relative;
   z-index: 1; /* Below header (h1) which is z-index: 1001 */
   
   /* CRITICAL: Reserve fixed width to prevent layout shifts */
@@ -172,6 +182,9 @@ body, .stApp {
   /* CRITICAL: No blur effects on this container */
   filter: none !important;
   backdrop-filter: none !important;
+  
+  /* CRITICAL: No transforms that create stacking contexts */
+  transform: none !important;
 }
 
 /* --- APPLYING TO ELEMENT --- */
@@ -188,16 +201,20 @@ body, .stApp {
   position: relative;
   width: 100%;
   
-  /* Z-INDEX: Ensure it stays below header */
-  z-index: 1;
+  /* CRITICAL FIX: Explicit z-index with position for production-safe stacking */
+  position: relative;
+  z-index: 1; /* Below header (h1) which is z-index: 1001 */
   
-  /* Animation using clip-path (doesn't affect layout) */
+  /* Animation using clip-path (doesn't affect layout or stacking context) */
   animation: smoothTypingCycle 12s steps(60, end) infinite;
   will-change: clip-path;
   
   /* CRITICAL: No blur effects */
   filter: none !important;
   backdrop-filter: none !important;
+  
+  /* CRITICAL: No transforms that create stacking contexts */
+  transform: none !important;
   
   /* The Cursor - positioned absolutely to not affect layout */
   padding-right: 0.5rem;
@@ -277,12 +294,14 @@ body, .stApp {
   border-radius: 0 0 50px 50px; 
   margin-bottom: 3rem; 
   
+  /* CRITICAL FIX: Removed levitate-smooth (uses transform) - it creates stacking contexts */
+  /* Only keep background animations that don't create stacking contexts */
   animation: 
     slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-    liquid-flow 20s ease infinite,
-    levitate-smooth 6s ease-in-out infinite;
+    liquid-flow 20s ease infinite;
     
-  will-change: background-position, transform, margin-top;
+  /* CRITICAL FIX: Removed transform from will-change - prevents stacking context creation */
+  will-change: background-position;
   
   /* Z-INDEX FIX: Header always on top - explicit high z-index */
   position: relative;
@@ -292,6 +311,9 @@ body, .stApp {
   /* CRITICAL: Ensure no blur effects on banner container */
   filter: none !important;
   backdrop-filter: none !important;
+  
+  /* CRITICAL: No transforms that create stacking contexts */
+  transform: none !important;
   
   box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
 }
@@ -306,16 +328,23 @@ body, .stApp {
   letter-spacing: -2px;
   line-height: 1;
   
-  /* Z-INDEX FIX: Header text above all other elements - highest priority */
+  /* CRITICAL FIX: Isolate header from parent stacking contexts */
+  /* Use position relative to create own stacking context independent of parent */
   position: relative;
-  z-index: 1001; /* Explicitly above everything including typing animation */
+  z-index: 9999; /* Very high z-index to override any Streamlit layers and ensure always on top */
+  
+  /* CRITICAL: Ensure header creates its own stacking context cleanly */
+  /* Avoid transforms on parent, use position-based isolation instead */
+  isolation: isolate; /* Create isolated stacking context for header - independent of parent */
   
   /* CRITICAL: Ensure no blur is applied to header text - multiple safeguards */
   filter: none !important;
   backdrop-filter: none !important;
   -webkit-filter: none !important;
-  transform: translateZ(0); /* Force hardware acceleration without blur */
-  will-change: transform, opacity; /* Optimize for animation without blur */
+  
+  /* CRITICAL FIX: Removed transform: translateZ(0) - it creates stacking context within parent */
+  /* Use will-change without transform to optimize without affecting stacking */
+  will-change: opacity; /* Optimize for animation without creating stacking context */
 
   /* Gradient text with shimmer */
   background: linear-gradient(
