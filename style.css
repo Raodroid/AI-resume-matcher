@@ -156,16 +156,25 @@ body, .stApp {
   /* Fixed container to prevent layout shifts */
   display: inline-block;
   position: relative;
-  min-height: 2.5rem; /* Reserve space for text */
+  
+  /* HUGGING FACE FIX: Fixed height to prevent growth */
+  height: 2.5rem; /* Fixed height instead of min-height */
+  max-height: 2.5rem; /* Prevent growth */
+  min-height: 2.5rem; /* Ensure minimum */
+  
   margin: 1.5rem 0 3rem;
   z-index: 2; /* Above background, below header text */
   
   /* CRITICAL: Reserve fixed width to prevent layout shifts */
   width: 450px; /* Fixed width - prevents any layout shifts */
+  max-width: 450px; /* HUGGING FACE FIX: Prevent width growth */
   text-align: center;
   
   /* Ensure container doesn't resize */
   box-sizing: border-box;
+  
+  /* HUGGING FIX: Prevent overflow that could cause growth */
+  overflow: hidden;
 }
 
 /* --- APPLYING TO ELEMENT --- */
@@ -181,6 +190,10 @@ body, .stApp {
   white-space: nowrap;
   position: relative;
   width: 100%;
+  
+  /* HUGGING FACE FIX: Prevent layout shifts from typing animation */
+  box-sizing: border-box;
+  contain: layout style; /* CSS containment */
   
   /* Animation using clip-path (doesn't affect layout) */
   animation: smoothTypingCycle 12s steps(60, end) infinite;
@@ -238,7 +251,7 @@ body, .stApp {
   padding: 8rem 2rem 10rem 2rem;
   margin-bottom: 4rem;
   position: relative;
-  overflow: hidden;
+  overflow: hidden; /* HUGGING FACE FIX: Prevent content overflow */
 
   /* EXACT UI BACKGROUND */
   background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
@@ -256,22 +269,31 @@ body, .stApp {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 60vh;
+  
+  /* HUGGING FACE FIX: Fixed height constraints to prevent growth */
+  height: 60vh; /* Fixed height instead of min-height */
+  max-height: 60vh; /* Prevent growth beyond viewport */
+  min-height: 60vh; /* Ensure minimum for content */
+  
   background-size: 200% 200%;
   border-radius: 0 0 50px 50px; 
   margin-bottom: 3rem; 
   
   animation: 
     slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-    liquid-flow 20s ease infinite,
-    levitate-smooth 6s ease-in-out infinite;
+    liquid-flow 20s ease infinite;
+    /* HUGGING FACE FIX: Removed levitate-smooth (uses transform) to prevent layout shifts */
     
-  will-change: background-position, transform, margin-top;
+  will-change: background-position; /* HUGGING FACE FIX: Removed transform from will-change */
   
   /* Z-INDEX FIX: Header always on top */
   position: relative;
   z-index: 100;
   isolation: isolate; /* Create new stacking context */
+  
+  /* HUGGING FACE FIX: Prevent any layout shifts from children */
+  box-sizing: border-box;
+  contain: layout style; /* CSS containment to prevent layout thrashing */
   
   box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
 }
@@ -291,8 +313,12 @@ body, .stApp {
   z-index: 101; /* Above typing subtitle and background */
   
   /* HUGGING FACE FIX: Ensure blur from epicEntrance animation doesn't persist in production */
-  /* Animation ends with filter: blur(0) at 100%, but ensure it's clean in all builds */
+  /* Animation ends with filter: blur(0px) at 100%, but ensure it's clean in all builds */
   /* Note: !important here would break the animation, so we rely on animation completion */
+  
+  /* HUGGING FACE FIX: Prevent layout shifts from header text */
+  box-sizing: border-box;
+  contain: layout style; /* CSS containment to prevent layout thrashing */
 
   /* Gradient text with shimmer */
   background: linear-gradient(

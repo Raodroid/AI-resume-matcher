@@ -230,6 +230,30 @@ st.markdown("""
 (function() {
     'use strict';
     
+    // HUGGING FACE FIX: Prevent header DOM duplication on Streamlit reruns
+    (function preventHeaderDuplication() {
+        const headerKey = 'header-initialized';
+        if (window[headerKey]) {
+            // Header already initialized, prevent duplicate rendering
+            const existingBanner = document.querySelector('.top-banner');
+            if (existingBanner && existingBanner.parentNode) {
+                // Remove any duplicate banners that might have been added
+                const allBanners = document.querySelectorAll('.top-banner');
+                if (allBanners.length > 1) {
+                    for (let i = 1; i < allBanners.length; i++) {
+                        allBanners[i].remove();
+                    }
+                }
+                // Ensure header has fixed dimensions
+                existingBanner.style.height = '60vh';
+                existingBanner.style.maxHeight = '60vh';
+                existingBanner.style.overflow = 'hidden';
+            }
+            return; // Skip re-initialization
+        }
+        window[headerKey] = true;
+    })();
+    
     // Track which steps have been scrolled to avoid duplicate scrolling
     const scrolledSteps = new Set();
     let isUserScrolling = false;
