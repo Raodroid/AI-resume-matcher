@@ -269,13 +269,17 @@ body, .stApp {
   align-items: center;
   justify-content: center;
   
-  /* FIX: Prevent header expansion on step changes */
-  height: 60vh;
-  max-height: 60vh;
-  min-height: 60vh;
+  /* STREAMLIT CLOUD FIX: Fixed height prevents cumulative growth on reruns */
+  height: 60vh !important;
+  max-height: 60vh !important;
+  min-height: 60vh !important;
   
-  /* FIX: CSS containment to prevent layout thrashing */
-  contain: layout style size;
+  /* STREAMLIT CLOUD FIX: Prevent flexbox children from causing overflow */
+  flex-shrink: 0;
+  flex-grow: 0;
+  
+  /* STREAMLIT CLOUD FIX: CSS containment prevents layout thrashing */
+  contain: layout style size !important;
   box-sizing: border-box;
   
   background-size: 200% 200%;
@@ -307,11 +311,39 @@ body, .stApp {
   letter-spacing: -2px;
   line-height: 1;
   
+  /* STREAMLIT CLOUD FIX: Prevent h1 from expanding container */
+  flex-shrink: 1;
+  flex-grow: 0;
+  max-width: 100%;
+  
+  /* Gradient text with shimmer */
+  background: linear-gradient(
+    90deg,
+    var(--slate-200) 0%,
+    var(--primary-blue) 20%,
+    var(--info-cyan) 40%,
+    var(--primary-blue) 60%,
+    var(--slate-200) 80%,
+    var(--primary-blue) 100%
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 
   /* Combined animations */
   animation: 
     epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     gradientShimmer 8s linear infinite,
+    glowPulse 4s ease-in-out infinite;
+
+  /* 3D text effect */
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 2px 0 rgba(255, 255, 255, 0.09), 0 3px 0 rgba(255, 255, 255, 0.08),
+    0 4px 0 rgba(255, 255, 255, 0.07), 0 5px 0 rgba(255, 255, 255, 0.06),
+    0 6px 0 rgba(255, 255, 255, 0.05), 0 7px 0 rgba(255, 255, 255, 0.04),
+    0 8px 0 rgba(255, 255, 255, 0.03), 0 9px 0 rgba(255, 255, 255, 0.02),
+    0 10px 0 rgba(255, 255, 255, 0.01);
 }
 
 /* Hero Stats Badges */
@@ -1065,21 +1097,29 @@ html {
 
 /* Mobile Mix */
 @media (max-width: 768px) {
-    /* Banner Resizing */
-    .top-banner { min-height: 300px !important; padding: 2rem 1rem !important; }
+    /* STREAMLIT CLOUD FIX: Mobile - maintain fixed height to prevent growth */
+    .top-banner { 
+        height: 60vh !important;
+        max-height: 60vh !important;
+        min-height: 60vh !important;
+        padding: 2rem 1rem !important;
+    }
     .top-banner h1 { font-size: 3rem !important; letter-spacing: -1px; }
     .top-banner h1::after { font-size: 2rem; right: -40px; top: -20px; }
     .top-banner p { font-size: 1rem !important; }
     .top-banner .subtitle { font-size: 1.2rem; }
     
-    /* Typing subtitle mobile fix */
+    /* STREAMLIT CLOUD FIX: Typing subtitle mobile - fixed height prevents growth */
     .top-banner .typing-subtitle {
         font-size: 1.2rem !important;
     }
     .top-banner .typing-subtitle-wrapper {
-        min-height: 2rem !important;
+        height: 2.5rem !important;
+        max-height: 2.5rem !important;
+        min-height: 2.5rem !important;
         width: 100% !important;
         max-width: 90vw !important;
+        overflow: hidden !important;
     }
     .top-banner .typing-text {
         min-width: auto !important;
