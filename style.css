@@ -150,7 +150,56 @@ body, .stApp {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
 }
+/* --- TYPING SUBTITLE CONTAINER (FIXED SIZE - PREVENTS LAYOUT SHIFTS) --- */
+.top-banner .typing-subtitle-wrapper {
+  /* Fixed container to prevent layout shifts */
+  display: inline-block;
+  position: relative;
+  
+  /* FIX: Fixed height to prevent growth */
+  height: 2.5rem;
+  max-height: 2.5rem;
+  min-height: 2.5rem;
+  
+  margin: 1.5rem 0 3rem;
+  z-index: 2; /* Above background, below header text */
+  
+  /* CRITICAL: Reserve fixed width to prevent layout shifts */
+  width: 450px;
+  max-width: 450px; /* FIX: Prevent width growth */
+  text-align: center;
+  
+  /* FIX: Prevent overflow and layout shifts */
+  overflow: hidden;
+  box-sizing: border-box;
+  contain: layout style size; /* CSS containment */
+}
 
+/* --- APPLYING TO ELEMENT --- */
+.top-banner .typing-subtitle {
+  /* Font & Layout */
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--slate-400);
+  letter-spacing: 1px;
+  
+  /* Stable layout - fixed dimensions prevent shifts */
+  display: inline-block;
+  white-space: nowrap;
+  position: relative;
+  width: 100%;
+  
+  /* FIX: Prevent layout growth from animation */
+  box-sizing: border-box;
+  contain: layout style; /* CSS containment */
+  
+  /* Animation using clip-path (doesn't affect layout) */
+  animation: smoothTypingCycle 12s steps(60, end) infinite;
+  will-change: clip-path;
+  
+  /* The Cursor - positioned absolutely to not affect layout */
+  padding-right: 0.5rem;
+}
 
 /* Cursor animation */
 .top-banner .typing-subtitle::after {
@@ -193,60 +242,6 @@ body, .stApp {
 /* ==========================================================================
    3. HEADER & HERO SECTION
    ========================================================================== */
-
-/* -- Version 2: Epic Hero Override -- */
-.top-banner {
-  text-align: center;
-  padding: 8rem 2rem 10rem 2rem;
-  margin-bottom: 4rem;
-  position: relative;
-  overflow: hidden;
-
-  /* EXACT UI BACKGROUND */
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-
-  /* Accent Border Bottom */
-  border-bottom: 1px solid var(--glass-border);
-
-  /* Add subtle grid for depth */
-  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 50px 50px;
-
-  /* Center content */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  
-  /* FIX: Prevent header expansion on step changes */
-  height: 60vh;
-  max-height: 60vh;
-  min-height: 60vh;
-  
-  /* FIX: CSS containment to prevent layout thrashing */
-  contain: layout style size;
-  box-sizing: border-box;
-  
-  background-size: 200% 200%;
-  border-radius: 0 0 50px 50px; 
-  margin-bottom: 3rem; 
-  
-  animation: 
-    slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-    liquid-flow 20s ease infinite;
-    /* FIX: Removed levitate-smooth - uses transform which causes layout growth in production */
-    
-  will-change: background-position; /* FIX: Removed transform/margin-top to prevent layout shifts */
-  
-  /* Z-INDEX FIX: Header always on top */
-  position: relative;
-  z-index: 100;
-  isolation: isolate; /* Create new stacking context */
-  
-  box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
-}
-
 
 /* Header Text (Version 2 - Epic) */
 .top-banner h1 {
