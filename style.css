@@ -151,56 +151,6 @@ body, .stApp {
   50% { opacity: 1; }
 }
 
-/* --- TYPING SUBTITLE CONTAINER (FIXED SIZE - PREVENTS LAYOUT SHIFTS) --- */
-.top-banner .typing-subtitle-wrapper {
-  /* Fixed container to prevent layout shifts */
-  display: inline-block;
-  position: relative;
-  
-  /* FIX: Fixed height to prevent growth */
-  height: 2.5rem;
-  max-height: 2.5rem;
-  min-height: 2.5rem;
-  
-  margin: 1.5rem 0 3rem;
-  z-index: 2; /* Above background, below header text */
-  
-  /* CRITICAL: Reserve fixed width to prevent layout shifts */
-  width: 450px;
-  max-width: 450px; /* FIX: Prevent width growth */
-  text-align: center;
-  
-  /* FIX: Prevent overflow and layout shifts */
-  overflow: hidden;
-  box-sizing: border-box;
-  contain: layout style size; /* CSS containment */
-}
-
-/* --- APPLYING TO ELEMENT --- */
-.top-banner .typing-subtitle {
-  /* Font & Layout */
-  font-size: 1.8rem;
-  font-weight: 600;
-  color: var(--slate-400);
-  letter-spacing: 1px;
-  
-  /* Stable layout - fixed dimensions prevent shifts */
-  display: inline-block;
-  white-space: nowrap;
-  position: relative;
-  width: 100%;
-  
-  /* FIX: Prevent layout growth from animation */
-  box-sizing: border-box;
-  contain: layout style; /* CSS containment */
-  
-  /* Animation using clip-path (doesn't affect layout) */
-  animation: smoothTypingCycle 12s steps(60, end) infinite;
-  will-change: clip-path;
-  
-  /* The Cursor - positioned absolutely to not affect layout */
-  padding-right: 0.5rem;
-}
 
 /* Cursor animation */
 .top-banner .typing-subtitle::after {
