@@ -256,7 +256,12 @@ body, .stApp {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  
+  /* FIX: Prevent header expansion on step changes */
+  height: 60vh;
+  max-height: 60vh;
   min-height: 60vh;
+  
   background-size: 200% 200%;
   border-radius: 0 0 50px 50px; 
   margin-bottom: 3rem; 

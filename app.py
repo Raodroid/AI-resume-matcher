@@ -230,6 +230,67 @@ st.markdown("""
 (function() {
     'use strict';
     
+    // FIX: Prevent header expansion on Streamlit reruns
+    (function preventHeaderExpansion() {
+        const headerKey = 'header-height-fixed';
+        if (!window[headerKey]) {
+            window[headerKey] = true;
+            
+            // Fix header height on initial load
+            function fixHeaderHeight() {
+                const banners = document.querySelectorAll('.top-banner');
+                banners.forEach(function(banner) {
+                    if (banner) {
+                        // Remove any duplicate banners (keep only first)
+                        if (banners.length > 1 && banner !== banners[0]) {
+                            banner.remove();
+                            return;
+                        }
+                        // Force fixed height
+                        banner.style.height = '60vh';
+                        banner.style.maxHeight = '60vh';
+                        banner.style.minHeight = '60vh';
+                        banner.style.overflow = 'hidden';
+                    }
+                });
+            }
+            
+            // Fix immediately
+            fixHeaderHeight();
+            
+            // Fix on DOM mutations (Streamlit reruns)
+            const observer = new MutationObserver(function(mutations) {
+                let shouldFix = false;
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length > 0) {
+                        for (let node of mutation.addedNodes) {
+                            if (node.nodeType === 1 && 
+                                (node.classList && node.classList.contains('top-banner') ||
+                                 node.querySelector && node.querySelector('.top-banner'))) {
+                                shouldFix = true;
+                                break;
+                            }
+                        }
+                    }
+                });
+                if (shouldFix) {
+                    setTimeout(fixHeaderHeight, 100);
+                }
+            });
+            
+            // Observe document body for changes
+            if (document.body) {
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            // Also fix periodically as backup
+            setInterval(fixHeaderHeight, 2000);
+        }
+    })();
+    
     // Track which steps have been scrolled to avoid duplicate scrolling
     const scrolledSteps = new Set();
     let isUserScrolling = false;
