@@ -221,8 +221,190 @@ def create_match_visualization(match_score):
 st.markdown("""
 <div class='top-banner'>
     <h1>HirePilot</h1>
-    <p class="typing-subtitle">Automate your job search today..</p>
+    <div class="typing-subtitle-wrapper">
+        <p class="typing-subtitle">Automate your job search today.</p>
+    </div>
 </div>
+
+<script>
+(function() {
+    'use strict';
+    
+    // Track which steps have been scrolled to avoid duplicate scrolling
+    const scrolledSteps = new Set();
+    let isUserScrolling = false;
+    let scrollTimeout = null;
+    let lastScrollCheck = 0;
+    
+    // Detect user-initiated scrolling
+    let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    let scrollDetectionTimeout = null;
+    
+    window.addEventListener('scroll', function() {
+        const currentScroll = window.pageYOffset || document.documentElement.scrollTop;
+        const scrollDelta = Math.abs(currentScroll - lastScrollTop);
+        
+        if (scrollDelta > 10) {
+            isUserScrolling = true;
+            clearTimeout(scrollDetectionTimeout);
+            scrollDetectionTimeout = setTimeout(function() {
+                isUserScrolling = false;
+            }, 2000);
+        }
+        lastScrollTop = currentScroll;
+    }, { passive: true });
+    
+    // Smooth scroll to element with fade-in animation
+    function smoothScrollToStep(stepElement, delay = 300) {
+        if (!stepElement || scrolledSteps.has(stepElement.id)) {
+            return;
+        }
+        
+        // Wait for layout to stabilize
+        setTimeout(function() {
+            if (isUserScrolling) {
+                // User is manually scrolling, don't interfere
+                return;
+            }
+            
+            // Check if element is in viewport (top 40% of screen)
+            const rect = stepElement.getBoundingClientRect();
+            const viewportTop = window.innerHeight * 0.1;
+            const isVisible = rect.top >= viewportTop && rect.top < window.innerHeight * 0.4;
+            
+            if (!isVisible && rect.top > 0) {
+                // Add fade-in class before scrolling
+                stepElement.classList.add('step-entering');
+                
+                // Calculate scroll position with offset
+                const elementTop = stepElement.offsetTop;
+                const offset = 80; // Offset from top
+                
+                // Smooth scroll
+                window.scrollTo({
+                    top: elementTop - offset,
+                    behavior: 'smooth'
+                });
+                
+                // Mark as scrolled
+                scrolledSteps.add(stepElement.id);
+            } else if (isVisible) {
+                // Already visible, just add animation
+                stepElement.classList.add('step-entering');
+                scrolledSteps.add(stepElement.id);
+            }
+        }, delay);
+    }
+    
+    // Check step completion and scroll
+    function checkAndScrollSteps() {
+        const now = Date.now();
+        if (now - lastScrollCheck < 500) {
+            return; // Throttle checks
+        }
+        lastScrollCheck = now;
+        
+        // Step 1: Check if resume is uploaded
+        const step1Complete = document.querySelector('[data-step-complete="1"]');
+        const step1Header = document.getElementById('step-1-header');
+        if (step1Header && step1Complete && !scrolledSteps.has('step-1-header')) {
+            smoothScrollToStep(step1Header, 600);
+            return; // Only scroll to one step at a time
+        }
+        
+        // Step 2: Check if search is complete
+        const step2Complete = document.querySelector('[data-step-complete="2"]');
+        const step2Header = document.getElementById('step-2-header');
+        if (step2Header && step2Complete && !scrolledSteps.has('step-2-header')) {
+            // Only scroll if Step 1 was already scrolled or completed
+            if (scrolledSteps.has('step-1-header') || step1Complete) {
+                smoothScrollToStep(step2Header, 400);
+                return;
+            }
+        }
+        
+        // Step 3: Check if results are visible
+        const step3Complete = document.querySelector('[data-step-complete="3"]');
+        const step3Header = document.getElementById('step-3-header');
+        if (step3Header && step3Complete && !scrolledSteps.has('step-3-header')) {
+            // Only scroll if Step 2 was already scrolled or completed
+            if (scrolledSteps.has('step-2-header') || step2Complete) {
+                smoothScrollToStep(step3Header, 400);
+            }
+        }
+    }
+    
+    // Use MutationObserver to detect when steps are added/updated
+    let observer = null;
+    
+    function init() {
+        // Observe the main content area for Streamlit
+        const mainContent = document.querySelector('[data-testid="stAppViewContainer"]') || 
+                          document.querySelector('.main') || 
+                          document.body;
+        
+        if (mainContent && !observer) {
+            observer = new MutationObserver(function(mutations) {
+                let shouldCheck = false;
+                mutations.forEach(function(mutation) {
+                    if (mutation.addedNodes.length > 0) {
+                        // Check if any added node is a step element
+                        for (let node of mutation.addedNodes) {
+                            if (node.nodeType === 1) {
+                                if (node.id && node.id.startsWith('step-')) {
+                                    shouldCheck = true;
+                                    break;
+                                }
+                                if (node.querySelector && node.querySelector('[id^="step-"]')) {
+                                    shouldCheck = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if (mutation.type === 'attributes' && 
+                        (mutation.attributeName === 'aria-expanded' || mutation.attributeName === 'class')) {
+                        shouldCheck = true;
+                    }
+                });
+                
+                if (shouldCheck) {
+                    // Debounce checks
+                    clearTimeout(window.scrollCheckTimeout);
+                    window.scrollCheckTimeout = setTimeout(checkAndScrollSteps, 300);
+                }
+            });
+            
+            observer.observe(mainContent, {
+                childList: true,
+                subtree: true,
+                attributes: true,
+                attributeFilter: ['aria-expanded', 'class', 'id']
+            });
+        }
+        
+        // Initial check after page load
+        setTimeout(checkAndScrollSteps, 1000);
+        
+        // Periodic check for dynamic content (less frequent)
+        setInterval(checkAndScrollSteps, 1500);
+    }
+    
+    // Initialize when DOM is ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        // DOM already ready
+        setTimeout(init, 100);
+    }
+    
+    // Re-initialize on Streamlit reruns
+    if (window.parent !== window) {
+        // Running in iframe (Streamlit)
+        window.addEventListener('load', init);
+    }
+})();
+</script>
 """, unsafe_allow_html=True)
 
 # Sidebar
@@ -247,7 +429,8 @@ with st.sidebar:
             st.rerun()
 
 # --- STEP 1: UPLOAD RESUME ---
-st.markdown('<div class="step-header"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
+st.markdown('<div id="step-1-header" class="step-header" data-step="1"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
+st.markdown('<div id="step-1-content" class="step-content" data-step="1">', unsafe_allow_html=True)
 
 if not st.session_state.resume_uploaded:
     uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
@@ -255,6 +438,18 @@ if not st.session_state.resume_uploaded:
     if uploaded_file and (st.session_state.last_uploaded_file != uploaded_file.name):
         progress_text = "Analyzing Profile..."
         my_bar = st.progress(0, text=progress_text)
+        
+        # Add custom progress bar styling
+        st.markdown("""
+        <style>
+        .stProgress > div > div > div {
+            background: linear-gradient(90deg, #3b82f6 0%, #06b6d4 50%, #3b82f6 100%);
+            background-size: 200% 100%;
+            animation: progress-fill 1s ease-out forwards, gradient-move 2s ease infinite;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+        }
+        </style>
+        """, unsafe_allow_html=True)
     
         try:
             # Simulate progress for smoother feel
@@ -285,16 +480,18 @@ if not st.session_state.resume_uploaded:
             my_bar.empty()
             st.error(f"Error: {e}")
 else:
-    with st.expander("✅ Resume Uploaded", expanded=False):
-        st.success("Resume is loaded and ready for matching.")
+    st.markdown('<div data-step-complete="1" style="display:none;"></div>', unsafe_allow_html=True)
+    with st.expander("Resume is loaded and ready for matching.", expanded=True):
         if st.button("Upload Different Resume"):
             st.session_state.resume_uploaded = False
             st.rerun()
+st.markdown('</div>', unsafe_allow_html=True)
 
 # --- STEP 2: SEARCH JOBS ---
 if st.session_state.resume_uploaded:
     st.markdown("---")
-    st.markdown('<div class="step-header"><div class="step-number">2</div> Find Your Dream Job</div>', unsafe_allow_html=True)
+    st.markdown('<div id="step-2-header" class="step-header" data-step="2"><div class="step-number">2</div> Find Your Dream Job</div>', unsafe_allow_html=True)
+    st.markdown('<div id="step-2-content" class="step-content" data-step="2">', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([2, 2, 1])
     
@@ -326,17 +523,20 @@ if st.session_state.resume_uploaded:
                     st.session_state.resume_text, st.session_state.jobs_df, top_n=10
                 )
                 st.session_state.matches_df = matches
+                st.markdown('<div data-step-complete="2" style="display:none;"></div>', unsafe_allow_html=True)
                 st.rerun()
             else:
                 st.session_state.matches_df = pd.DataFrame() 
                 st.error("❌ No jobs found. Try a broader search term.")
         except Exception as e:
             st.error(f"System Error: {str(e)}")
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- STEP 3: MATCHED RESULTS ---
 if not st.session_state.matches_df.empty:
     st.markdown("---")
-    st.markdown('<div class="step-header"><div class="step-number">3</div> Matched Roles</div>', unsafe_allow_html=True)
+    st.markdown('<div id="step-3-header" class="step-header" data-step="3"><div class="step-number">3</div> Matched Roles</div>', unsafe_allow_html=True)
+    st.markdown('<div data-step-complete="3" style="display:none;"></div>', unsafe_allow_html=True)
     
     st.success(f"🎉 Found {len(st.session_state.matches_df)} jobs matching your resume!")
 
@@ -351,7 +551,8 @@ if not st.session_state.matches_df.empty:
         # --- RENDER JOB CARD ---
         st.markdown('<div class="job-card">', unsafe_allow_html=True)
         
-        # 1. Header Row
+        # 1. Header Row - Compact Layout
+        st.markdown('<div class="job-card-header">', unsafe_allow_html=True)
         c1, c2 = st.columns([3, 1])
         with c1:
             st.markdown(f"<div class='job-title'>{job_title_txt}</div>", unsafe_allow_html=True)
@@ -365,8 +566,7 @@ if not st.session_state.matches_df.empty:
                 <div class='score-lbl'>Match</div>
             </div>
             """, unsafe_allow_html=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
         # 2. Meta Badges
         st.markdown(f"""
@@ -401,7 +601,7 @@ if not st.session_state.matches_df.empty:
                 if tech:
                     st.markdown(f"<div class='section-title'>💻 Tech Stack</div>", unsafe_allow_html=True)
                     tech_html = "".join([f"<span class='tech-tag'>{t}</span>" for t in tech])
-                    st.markdown(f"<div style='margin-bottom:2rem;'>{tech_html}</div>", unsafe_allow_html=True)
+                    st.markdown(f"<div style='margin-bottom:1rem;'>{tech_html}</div>", unsafe_allow_html=True)
 
                 # Columns: Responsibilities vs Requirements
                 col_left, col_right = st.columns(2)
@@ -417,7 +617,6 @@ if not st.session_state.matches_df.empty:
                         st.markdown(f"<div class='section-title'>✅ Requirements</div><ul class='clean-list'>{list_html}</ul>", unsafe_allow_html=True)
 
                 # Education & Soft Skills
-                st.markdown("<br>", unsafe_allow_html=True)
                 c3, c4 = st.columns(2)
                 with c3:
                     ed = ai_data.get('education_cert', 'Not specified')
@@ -429,15 +628,15 @@ if not st.session_state.matches_df.empty:
                         soft_html = "".join([f"<span class='soft-tag'>{s}</span>" for s in soft])
                         st.markdown(f"<div>{soft_html}</div>", unsafe_allow_html=True)
 
-                # Culture & Benefits Box
+                # Culture & Benefits Box - Integrated into AI Analysis
                 st.markdown(f"""
                 <div class='culture-box'>
-                    <div class='section-title' style='color:#3b82f6; border-color:#3b82f6;'>🎁 Benefits & Culture</div>
-                    <div style='display:grid; grid-template-columns: 1fr 1fr; gap:1rem; color:var(--text-main);'>
+                    <div class='section-title' style='color:#3b82f6; border-color:#3b82f6; margin-top:0.75rem;'>🎁 Benefits & Culture</div>
+                    <div style='display:grid; grid-template-columns: 1fr 1fr; gap:0.75rem; color:var(--text-main); margin-top:0.5rem;'>
                         <div><strong>💰 Salary:</strong> {ai_data.get('salary_benefits', 'N/A')}</div>
                         <div><strong>🏠 Policy:</strong> {ai_data.get('remote_policy', 'N/A')}</div>
                     </div>
-                    <div style='margin-top:1rem; opacity:0.8; font-style:italic;'>
+                    <div style='margin-top:0.75rem; opacity:0.8; font-style:italic; font-size:0.95rem;'>
                         "{ai_data.get('culture_vibe', 'Standard corporate culture.')}"
                     </div>
                 </div>
@@ -446,7 +645,7 @@ if not st.session_state.matches_df.empty:
             st.markdown('</div>', unsafe_allow_html=True)
             
         else:
-            st.markdown("<br>", unsafe_allow_html=True)
+            # Deep Dive Button - Clean, no wrapper divs
             if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
                 if GROQ_ENABLED:
                     with st.spinner("🤖 Deep diving into job details..."):
@@ -462,7 +661,7 @@ if not st.session_state.matches_df.empty:
         # --- COVER LETTER SECTION ---
         cl_text = st.session_state.cover_letters.get(job_id)
         if cl_text:
-            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown('<div class="step-content" style="margin-top:1.5rem;">', unsafe_allow_html=True)
             st.markdown("### 📝 Draft Cover Letter")
             tab_preview, tab_edit = st.tabs(["📄 Preview Paper", "✏️ Edit Text"])
             
@@ -476,9 +675,10 @@ if not st.session_state.matches_df.empty:
                     st.rerun()
 
             st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
+            st.markdown('</div>', unsafe_allow_html=True)
         
-        # Footer Buttons
-        st.markdown("<div style='margin-top: 2rem;'>", unsafe_allow_html=True)
+        # Footer Buttons - Compact
+        st.markdown("<div style='margin-top: 1.5rem;'>", unsafe_allow_html=True)
         col_b1, col_b2 = st.columns([1, 1])
         with col_b1:
             lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"

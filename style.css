@@ -28,6 +28,42 @@
   /* Typography */
   --font-primary: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: "SF Mono", Monaco, "Roboto Mono", monospace;
+  
+  /* Additional Theme Variables - Darker for Premium Feel */
+  --card-bg: rgba(30, 41, 59, 0.7);
+  --gray-border: rgba(255, 255, 255, 0.12);
+  --blue-brand: #3b82f6;
+  --blue-border: rgba(59, 130, 246, 0.3);
+  --blue-light: rgba(59, 130, 246, 0.1);
+  --text-main: #e2e8f0;
+  
+  /* Background Variables - Darker Premium Theme */
+  --bg-primary: #0a0e1a;
+  --bg-secondary: #0f1419;
+  --bg-tertiary: #0d1117;
+  --bg-elevated: rgba(15, 23, 42, 0.4);
+}
+
+/* ==========================================================================
+   1.5. GLOBAL BACKGROUND & BASE STYLES
+   ========================================================================== */
+
+/* Professional Dark Background with Subtle Texture */
+body, .stApp {
+  background: 
+    /* Subtle noise texture overlay - darker */
+    radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.015) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.01) 0%, transparent 50%),
+    /* Darker layered gradient background */
+    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
+  background-attachment: fixed;
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  min-height: 100vh;
+}
+
+/* Ensure content has proper contrast */
+.stApp > div {
+  background: transparent;
 }
 
 
@@ -48,6 +84,26 @@
 @keyframes fade-in-up {
     0% { opacity: 0; transform: translateY(20px); }
     100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes slide-fade-in {
+    0% { opacity: 0; transform: translateY(15px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes expand-height {
+    0% { max-height: 0; opacity: 0; overflow: hidden; }
+    100% { max-height: 2000px; opacity: 1; overflow: visible; }
+}
+@keyframes progress-fill {
+    0% { width: 0%; }
+    100% { width: var(--progress-width, 100%); }
+}
+@keyframes progress-glow {
+    0%, 100% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.3); }
+    50% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.6), 0 0 30px rgba(6, 182, 212, 0.4); }
+}
+@keyframes step-complete {
+    0% { opacity: 0; transform: translateY(10px) scale(0.95); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 @keyframes levitate-smooth {
     0% { transform: translateY(0px); }
@@ -71,28 +127,45 @@
   50% { text-shadow: 0 0 30px rgba(59, 130, 246, 0.7), 0 0 60px rgba(59, 130, 246, 0.4), 0 0 80px rgba(59, 130, 246, 0.3), 0 0 100px rgba(59, 130, 246, 0.2); }
 }
 
-/* --- NATURAL & SMOOTH TYPING ANIMATION --- */
+/* --- NATURAL & SMOOTH TYPING ANIMATION (FIXED LAYOUT) --- */
 
-/* 1. The Typing Cycle (Adjusted for slower deletion) */
+/* 1. The Typing Cycle - Using clip-path for stable layout (no width changes) */
 @keyframes smoothTypingCycle {
   /* 0% to 30%: Typing Phase (Fast & Confident) */
-  0% { width: 0; }
-  30% { width: 100%; } 
+  0% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
+  30% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); } 
   
   /* 30% to 75%: Reading Pause (Long enough to read) */
-  75% { width: 100%; }
+  75% { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
   
   /* 75% to 95%: Deleting Phase (SLOWER NOW - Natural backspacing) */
-  95% { width: 0; }
+  95% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
   
   /* 95% to 100%: Short Breath before restarting */
-  100% { width: 0; }
+  100% { clip-path: polygon(0 0, 0 0, 0 100%, 0 100%); }
 }
 
 /* 2. The Blinking Cursor */
 @keyframes blinkCursor {
-  0%, 100% { border-color: transparent; }
-  50% { border-color: var(--primary-blue); }
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+
+/* --- TYPING SUBTITLE CONTAINER (FIXED SIZE - PREVENTS LAYOUT SHIFTS) --- */
+.top-banner .typing-subtitle-wrapper {
+  /* Fixed container to prevent layout shifts */
+  display: inline-block;
+  position: relative;
+  min-height: 2.5rem; /* Reserve space for text */
+  margin: 1.5rem 0 3rem;
+  z-index: 2; /* Above background, below header text */
+  
+  /* CRITICAL: Reserve fixed width to prevent layout shifts */
+  width: 450px; /* Fixed width - prevents any layout shifts */
+  text-align: center;
+  
+  /* Ensure container doesn't resize */
+  box-sizing: border-box;
 }
 
 /* --- APPLYING TO ELEMENT --- */
@@ -101,29 +174,34 @@
   font-size: 1.8rem;
   font-weight: 600;
   color: var(--slate-400);
-  margin: 1.5rem 0 3rem;
-  position: relative;
-  z-index: 1;
   letter-spacing: 1px;
   
-  /* Layout specific for typing */
+  /* Stable layout - fixed dimensions prevent shifts */
   display: inline-block;
   white-space: nowrap;
-  overflow: hidden;
-  max-width: max-content;
+  position: relative;
+  width: 100%;
   
-  /* The Cursor */
-  border-right: 3px solid var(--primary-blue);
+  /* Animation using clip-path (doesn't affect layout) */
+  animation: smoothTypingCycle 12s steps(60, end) infinite;
+  will-change: clip-path;
   
-  /* ANIMATION SETTINGS
-     1. Duration: 12s total cycle.
-     2. Steps: 60 (High framerate for smoothness).
-  */
-  animation: 
-    smoothTypingCycle 12s steps(60, end) infinite,
-    blinkCursor 0.8s step-end infinite;
-    
-  will-change: width;
+  /* The Cursor - positioned absolutely to not affect layout */
+  padding-right: 0.5rem;
+}
+
+/* Cursor animation */
+.top-banner .typing-subtitle::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 1.2em;
+  background-color: var(--primary-blue);
+  animation: blinkCursor 0.8s step-end infinite;
+  pointer-events: none;
 }
 
 /* -- Group C: Epic Hero Animations -- */
@@ -179,20 +257,23 @@
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-    background-size: 200% 200%;
-    border-radius: 0 0 50px 50px; 
-    margin-bottom: 3rem; 
+  background-size: 200% 200%;
+  border-radius: 0 0 50px 50px; 
+  margin-bottom: 3rem; 
+  
+  animation: 
+    slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
+    liquid-flow 20s ease infinite,
+    levitate-smooth 6s ease-in-out infinite;
     
-    animation: 
-        slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-        liquid-flow 20s ease infinite,
-        levitate-smooth 6s ease-in-out infinite;
-        
-    will-change: background-position, transform, margin-top;
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
-
+  will-change: background-position, transform, margin-top;
+  
+  /* Z-INDEX FIX: Header always on top */
+  position: relative;
+  z-index: 100;
+  isolation: isolate; /* Create new stacking context */
+  
+  box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
 }
 
 
@@ -204,11 +285,10 @@
   margin: 0 0 0.5rem 0;
   letter-spacing: -2px;
   line-height: 1;
+  
+  /* Z-INDEX FIX: Header text above all other elements */
   position: relative;
-  z-index: 1;
-
-  /* Epic entrance animation */
-  animation: epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  z-index: 101; /* Above typing subtitle and background */
 
   /* Gradient text with shimmer */
   background: linear-gradient(
@@ -225,12 +305,11 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 
-  /* Continuous shimmer animation */
-  animation: epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-    gradientShimmer 8s linear infinite;
-
-  /* Glowing effect */
-  animation: glowPulse 4s ease-in-out infinite;
+  /* Combined animations */
+  animation: 
+    epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    gradientShimmer 8s linear infinite,
+    glowPulse 4s ease-in-out infinite;
 
   /* 3D text effect */
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -248,6 +327,8 @@
   gap: 2rem;
   margin-top: 3rem;
   animation: fadeIn 1s ease-out 2.5s both;
+  position: relative;
+  z-index: 3; /* Above typing subtitle */
 }
 
 .stat-badge {
@@ -300,72 +381,85 @@
    4. CONTENT CARDS, LISTS & AI INSIGHTS (FIXED)
    ========================================================================== */
 
-/* --- MAIN JOB CARD --- */
+/* --- MAIN JOB CARD (COMPACT & INFORMATION-DENSE) --- */
 .job-card {
     background-color: var(--card-bg);
     border-radius: 16px; 
-    padding: 2rem; 
-    margin: 1.5rem 0; 
+    padding: 1.5rem; /* Reduced from 2rem */
+    margin: 1.25rem 0; /* Reduced from 1.5rem */
     border: 1px solid var(--gray-border);
-    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s, box-shadow 0.2s;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.3), 
+                0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s, box-shadow 0.3s, opacity 0.3s;
     will-change: transform;
-    animation: fade-in-up 0.8s ease-out 1.0s backwards;
+    animation: slide-fade-in 0.5s ease-out backwards;
     display: flex;
     flex-direction: column;
-    gap: 0.8rem; 
+    gap: 0.5rem; /* Reduced from 0.8rem */
     
-    /* Layering Fix: Ensure this sits above background but below header */
+    /* LAYERING FIX: Below header, stable positioning */
     position: relative;
-    z-index: 1; 
+    z-index: 1;
+    isolation: isolate; /* Create stacking context */
 }
 
 .job-card:hover {
     border-color: var(--blue-brand);
     transform: translateY(-4px);
-    box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 20px 40px -12px rgba(59, 130, 246, 0.3),
+                0 0 0 1px rgba(59, 130, 246, 0.2) inset,
+                0 0 30px rgba(59, 130, 246, 0.1);
 }
 
-/* Typography */
+/* Typography - Compact Layout */
+.job-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem; /* Reduced spacing */
+}
+
 .job-title {
     color: var(--text-main);
-    font-size: 2.2rem; 
+    font-size: 1.9rem; /* Reduced from 2.2rem */
     font-weight: 800;
     margin: 0;
-    line-height: 1.1;
+    line-height: 1.2; /* Slightly tighter */
     letter-spacing: -0.5px;
+    flex: 1;
 }
 .company-name {
     color: var(--text-main);
-    opacity: 0.9;
-    font-size: 1.3rem; 
+    opacity: 0.85;
+    font-size: 1.1rem; /* Reduced from 1.3rem */
     font-weight: 600;
-    margin-top: 0.3rem;
-    margin-bottom: 1rem; 
+    margin-top: 0.25rem; /* Reduced from 0.3rem */
+    margin-bottom: 0; /* Removed bottom margin */
 }
 .summary-text {
-    font-size: 1.1rem; 
+    font-size: 1rem; /* Reduced from 1.1rem */
     line-height: 1.6; 
     color: var(--text-main);
-    margin-bottom: 1.2rem; 
+    margin-bottom: 0.75rem; /* Reduced from 1.2rem */
     font-weight: 400;
     text-align: left;
 }
 
-/* Section Dividers */
+/* Section Dividers - Compact */
 .section-title {
     color: var(--blue-brand);
-    font-size: 1rem; 
+    font-size: 0.9rem; /* Reduced from 1rem */
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-weight: 800;
-    margin-top: 0.8rem;
-    margin-bottom: 0.6rem; 
+    margin-top: 0.5rem; /* Reduced from 0.8rem */
+    margin-bottom: 0.5rem; /* Reduced from 0.6rem */
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem; /* Reduced from 0.6rem */
     border-bottom: 2px solid var(--blue-border);
-    padding-bottom: 0.4rem;
+    padding-bottom: 0.35rem; /* Reduced from 0.4rem */
     width: 100%;
 }
 
@@ -379,11 +473,11 @@ ul.clean-list {
 ul.clean-list li {
     display: flex; 
     align-items: flex-start;
-    gap: 12px; /* Space between dot and text */
-    margin-bottom: 8px;
+    gap: 10px; /* Reduced from 12px */
+    margin-bottom: 6px; /* Reduced from 8px */
     line-height: 1.5;
     color: var(--text-main);
-    font-size: 1.05rem;
+    font-size: 1rem; /* Reduced from 1.05rem */
     opacity: 0.95;
 }
 
@@ -400,18 +494,36 @@ ul.clean-list li::before {
     box-shadow: 0 0 8px var(--blue-brand); /* Blue Glow */
 }
 
-/* --- AI INSIGHT BOX (Categorized Layout) --- */
+/* --- AI INSIGHT BOX (UNIFIED COHESIVE CONTAINER) --- */
 .ai-insight-card {
-    background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, rgba(59, 130, 246, 0.01) 100%);
+    background: linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, rgba(59, 130, 246, 0.02) 100%);
     border: 1px solid var(--blue-border);
     border-radius: 12px;
-    padding: 2.5rem 2rem 2rem 2rem; /* Extra top padding for label */
-    margin-top: 1.5rem;
+    padding: 1.75rem; /* Reduced and unified padding */
+    margin-top: 1rem; /* Reduced from 1.5rem */
+    margin-bottom: 0; /* Remove bottom margin to prevent excess space */
     position: relative;
     overflow: hidden;
-    animation: fadeIn 0.5s;
+    animation: expand-height 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards, slide-fade-in 0.4s ease-out forwards;
     width: 100%;
-    z-index: 2; /* Ensures it sits on top */
+    
+    /* LAYOUT STABILITY: No fixed height - adapts to content */
+    box-sizing: border-box;
+    min-height: auto; /* Remove fixed min-height */
+    
+    /* Z-INDEX: Below header, above content */
+    z-index: 1;
+    isolation: isolate; /* Create stacking context */
+    
+    /* Smooth transitions */
+    transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    animation-fill-mode: forwards;
+}
+
+/* Ensure no empty space when card is hidden or loading */
+.ai-insight-card:empty {
+    display: none;
 }
 
 /* Sub-Categories (Boxes & Lines) */
@@ -438,15 +550,21 @@ ul.clean-list li::before {
     line-height: 1.6;
 }
 
-/* --- CULTURE BOX (Fixed Blue) --- */
+/* --- CULTURE BOX (Integrated into AI Analysis) --- */
 .culture-box {
-    /* Hardcoded Blue/Cyan Gradient with higher opacity */
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%) !important;
-    border: 1px solid #3b82f6 !important;
-    border-radius: 12px;
-    padding: 1.5rem; 
-    margin-top: 1.5rem;
-    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.1) !important;
+    /* Integrated styling - part of unified AI analysis */
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(6, 182, 212, 0.12) 100%);
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 10px;
+    padding: 1.25rem; /* Reduced from 1.5rem */
+    margin-top: 1rem; /* Reduced from 1.5rem */
+    margin-bottom: 0; /* Remove bottom margin */
+    box-shadow: 0 2px 10px rgba(59, 130, 246, 0.08);
+    transition: all 0.3s ease;
+}
+.culture-box:hover {
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.12);
+    transform: translateY(-1px);
 }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -480,64 +598,85 @@ ul.clean-list li::before {
    5. UI COMPONENTS (Badges & Visuals)
    ========================================================================== */
 
-/* Tags & Badges */
+/* Tags & Badges - Compact */
 .tech-tag {
     display: inline-block;
     background: var(--card-bg);
-    color: var(--blue-brand); /* CHANGED */
-    border: 1px solid var(--blue-border); /* CHANGED */
-    padding: 0.4rem 0.9rem; 
-    border-radius: 8px;
+    color: var(--blue-brand);
+    border: 1px solid var(--blue-border);
+    padding: 0.35rem 0.75rem; /* Reduced from 0.4rem 0.9rem */
+    border-radius: 6px; /* Reduced from 8px */
     font-family: monospace;
-    font-size: 0.95rem; 
+    font-size: 0.9rem; /* Reduced from 0.95rem */
     font-weight: 700;
-    margin: 0 0.4rem 0.4rem 0; 
+    margin: 0 0.3rem 0.3rem 0; /* Reduced from 0.4rem */
+    transition: all 0.2s ease;
+}
+.tech-tag:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
 }
 .soft-tag {
     display: inline-block;
-    background: var(--blue-light); /* CHANGED */
+    background: var(--blue-light);
     color: var(--text-main);
-    border: 1px solid var(--blue-border); /* CHANGED */
-    padding: 0.4rem 0.9rem; 
+    border: 1px solid var(--blue-border);
+    padding: 0.35rem 0.75rem; /* Reduced from 0.4rem 0.9rem */
     border-radius: 99px;
-    font-size: 0.95rem; 
-    margin: 0 0.4rem 0.4rem 0;
+    font-size: 0.9rem; /* Reduced from 0.95rem */
+    margin: 0 0.3rem 0.3rem 0; /* Reduced from 0.4rem */
+    transition: all 0.2s ease;
+}
+.soft-tag:hover {
+    transform: translateY(-1px);
+    background: rgba(59, 130, 246, 0.15);
 }
 .meta-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-bottom: 1.5rem;
+    gap: 0.5rem; /* Reduced from 0.6rem */
+    margin-bottom: 0.75rem; /* Reduced from 1.5rem */
+    margin-top: 0.25rem;
 }
 .meta-badge {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1.2rem; 
+    gap: 0.4rem; /* Reduced from 0.5rem */
+    padding: 0.4rem 1rem; /* Reduced from 0.5rem 1.2rem */
     border-radius: 50px; 
-    font-size: 0.9rem;
+    font-size: 0.85rem; /* Reduced from 0.9rem */
     font-weight: 600;
     background: rgba(128,128,128, 0.1); 
     border: 1px solid rgba(128,128,128, 0.2);
     color: var(--text-main);
+    transition: all 0.2s ease;
+}
+.meta-badge:hover {
+    background: rgba(128,128,128, 0.15);
+    transform: translateY(-1px);
 }
 
-/* Score Visualization */
+/* Score Visualization - Compact */
 .score-badge {
     background: var(--card-bg);
     border: 3px solid; 
-    border-radius: 16px;
-    padding: 1rem;
+    border-radius: 12px; /* Reduced from 16px */
+    padding: 0.75rem; /* Reduced from 1rem */
     text-align: center;
-    min-width: 110px;
-    height: 100%;
+    min-width: 90px; /* Reduced from 110px */
+    height: fit-content;
     display: flex;
     flex-direction: column;
     justify-content: center;
     box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
 }
-.score-val { font-size: 2.5rem; font-weight: 900; line-height: 1; margin-bottom: 0; color: var(--text-main); }
-.score-lbl { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); opacity: 0.7; margin-top: 0.3rem; font-weight: 700; }
+.score-badge:hover {
+    transform: scale(1.05);
+}
+.score-val { font-size: 2rem; font-weight: 900; line-height: 1; margin-bottom: 0; color: var(--text-main); } /* Reduced from 2.5rem */
+.score-lbl { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-main); opacity: 0.7; margin-top: 0.2rem; font-weight: 700; } /* Reduced from 0.8rem */
 
 .high-match { color: #10b981; border-color: #10b981; }
 .med-match { color: #f59e0b; border-color: #f59e0b; }
@@ -613,7 +752,7 @@ ul.clean-list li::before {
 /* Hero CTA Button (Epic Version) */
 .hero-cta-container {
   position: relative;
-  z-index: 1;
+  z-index: 3; /* Above typing subtitle */
   margin-top: 2rem;
   animation: fadeIn 1s ease-out 2s both;
 }
@@ -703,16 +842,178 @@ ul.clean-list li::before {
     animation: text-glow-pulse 4s ease-in-out infinite;
 }
 
-/* Step Headers */
+/* Step Headers - Smooth Transitions with Progress Indicator */
 .step-header {
     font-size: 1.3rem; 
     font-weight: 700;
     color: var(--text-main);
-    margin-bottom: 0.8rem;
+    margin-bottom: 1rem;
+    margin-top: 2rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    animation: fade-in-up 0.8s ease-out 0.8s backwards, text-glow-pulse 3s ease-in-out infinite;
+    animation: slide-fade-in 0.6s ease-out forwards;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    position: relative;
+    scroll-margin-top: 2rem; /* Offset for smooth scroll positioning */
+}
+
+/* Step progress indicator line */
+.step-header::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--primary-blue), var(--info-cyan));
+    animation: step-progress-line 0.8s ease-out 0.3s forwards;
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+
+@keyframes step-progress-line {
+    0% { width: 0; }
+    100% { width: 100%; }
+}
+
+/* Step content containers with smooth transitions */
+.step-content {
+    animation: slide-fade-in 0.5s ease-out 0.2s backwards;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    opacity: 0;
+    animation-fill-mode: forwards;
+    position: relative;
+}
+
+/* Step transition effect when moving between steps */
+.step-content.step-transitioning {
+    animation: step-fade-out 0.3s ease-out forwards;
+}
+
+@keyframes step-fade-out {
+    0% { opacity: 1; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.step-content.step-entering {
+    animation: step-fade-in 0.5s ease-out forwards;
+}
+
+@keyframes step-fade-in {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Step header entering animation */
+.step-header.step-entering {
+    animation: step-header-fade-in 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes step-header-fade-in {
+    0% { 
+        opacity: 0; 
+        transform: translateY(15px) scale(0.98); 
+    }
+    100% { 
+        opacity: 1; 
+        transform: translateY(0) scale(1); 
+    }
+}
+
+/* Smooth scroll behavior */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 2rem;
+}
+
+/* Ensure step containers have stable heights */
+.step-header,
+.step-content {
+    min-height: 1px; /* Prevent collapse */
+    will-change: transform, opacity;
+}
+
+/* Layout stability during transitions */
+.step-content {
+    contain: layout style;
+}
+
+/* Step completion indicator */
+.step-complete {
+    animation: step-complete 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Advanced Progress Bar Styling */
+.stProgress > div > div > div {
+    background: linear-gradient(90deg, 
+        var(--primary-blue) 0%, 
+        var(--info-cyan) 50%, 
+        var(--primary-blue) 100%);
+    background-size: 200% 100%;
+    animation: progress-fill 1s ease-out forwards, 
+               gradient-move 2s ease infinite,
+               progress-glow 2s ease-in-out infinite;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4),
+                0 0 30px rgba(6, 182, 212, 0.2);
+    height: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stProgress > div > div > div:hover {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.6),
+                0 0 40px rgba(6, 182, 212, 0.3);
+}
+
+/* Progress bar container */
+.stProgress {
+    margin: 1rem 0;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(30, 41, 59, 0.5);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Progress text styling */
+.stProgress > div > div > div::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        transparent 100%);
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Success message transitions */
+.stSuccess {
+    animation: slide-fade-in 0.4s ease-out backwards;
+    margin-bottom: 1rem !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    border-radius: 8px !important;
+    padding: 1rem !important;
+}
+
+/* Step completion visual feedback */
+.step-header.completed .step-number {
+    background: linear-gradient(135deg, var(--success-green), var(--info-cyan)) !important;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.4) !important;
+    animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+    50% { box-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 40px rgba(6, 182, 212, 0.3); }
 }
 .step-number {
     /* CHANGED: Gradient Blue */
@@ -776,10 +1077,26 @@ ul.clean-list li::before {
     .top-banner h1::after { font-size: 2rem; right: -40px; top: -20px; }
     .top-banner p { font-size: 1rem !important; }
     .top-banner .subtitle { font-size: 1.2rem; }
+    
+    /* Typing subtitle mobile fix */
+    .top-banner .typing-subtitle {
+        font-size: 1.2rem !important;
+    }
+    .top-banner .typing-subtitle-wrapper {
+        min-height: 2rem !important;
+        width: 100% !important;
+        max-width: 90vw !important;
+    }
+    .top-banner .typing-text {
+        min-width: auto !important;
+        width: 100% !important;
+    }
 
-    /* Card Resizing */
-    .job-card { padding: 1.2rem !important; margin: 1rem 0 !important; border-radius: 12px !important; }
-    .job-title { font-size: 1.8rem !important; }
+    /* Card Resizing - Compact */
+    .job-card { padding: 1.2rem !important; margin: 1rem 0 !important; border-radius: 12px !important; gap: 0.4rem !important; }
+    .job-title { font-size: 1.6rem !important; }
+    .company-name { font-size: 1rem !important; }
+    .job-card-header { gap: 0.75rem !important; }
     
     /* Stats & Scores */
     .score-badge { padding: 0.8rem !important; min-width: 80px !important; margin-top: 1rem; }
