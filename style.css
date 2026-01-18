@@ -66,15 +66,6 @@ body, .stApp {
   background: transparent;
 }
 
-/* CRITICAL FIX: Ensure Streamlit containers don't interfere with header stacking */
-[data-testid="stAppViewContainer"],
-.stApp > div {
-  /* Prevent transforms or filters on Streamlit containers that could affect header */
-  filter: none !important;
-  backdrop-filter: none !important;
-  transform: none !important;
-}
-
 
 /* ==========================================================================
    2. ANIMATION KEYFRAMES
@@ -167,10 +158,7 @@ body, .stApp {
   position: relative;
   min-height: 2.5rem; /* Reserve space for text */
   margin: 1.5rem 0 3rem;
-  
-  /* CRITICAL FIX: Explicit z-index with position for production-safe stacking */
-  position: relative;
-  z-index: 1; /* Below header (h1) which is z-index: 1001 */
+  z-index: 2; /* Above background, below header text */
   
   /* CRITICAL: Reserve fixed width to prevent layout shifts */
   width: 450px; /* Fixed width - prevents any layout shifts */
@@ -178,13 +166,6 @@ body, .stApp {
   
   /* Ensure container doesn't resize */
   box-sizing: border-box;
-  
-  /* CRITICAL: No blur effects on this container */
-  filter: none !important;
-  backdrop-filter: none !important;
-  
-  /* CRITICAL: No transforms that create stacking contexts */
-  transform: none !important;
 }
 
 /* --- APPLYING TO ELEMENT --- */
@@ -201,20 +182,9 @@ body, .stApp {
   position: relative;
   width: 100%;
   
-  /* CRITICAL FIX: Explicit z-index with position for production-safe stacking */
-  position: relative;
-  z-index: 1; /* Below header (h1) which is z-index: 1001 */
-  
-  /* Animation using clip-path (doesn't affect layout or stacking context) */
+  /* Animation using clip-path (doesn't affect layout) */
   animation: smoothTypingCycle 12s steps(60, end) infinite;
   will-change: clip-path;
-  
-  /* CRITICAL: No blur effects */
-  filter: none !important;
-  backdrop-filter: none !important;
-  
-  /* CRITICAL: No transforms that create stacking contexts */
-  transform: none !important;
   
   /* The Cursor - positioned absolutely to not affect layout */
   padding-right: 0.5rem;
@@ -235,17 +205,14 @@ body, .stApp {
 }
 
 /* -- Group C: Epic Hero Animations -- */
-/* REMOVED epicEntrance animation - it was causing blur issues on header */
-/* If needed, use a non-blur version:
 @keyframes epicEntrance {
-  0% { transform: translateY(-100px) scale(0.8); opacity: 0; }
-  20% { transform: translateY(50px) scale(1.1); opacity: 0.8; }
-  40% { transform: translateY(-20px) scale(1.05); opacity: 0.9; }
-  60% { transform: translateY(10px) scale(1.02); opacity: 0.95; }
-  80% { transform: translateY(-5px) scale(1.01); opacity: 0.98; }
-  100% { transform: translateY(0) scale(1); opacity: 1; }
+  0% { transform: translateY(-100px) scale(0.8); opacity: 0; filter: blur(10px); }
+  20% { transform: translateY(50px) scale(1.1); opacity: 0.8; filter: blur(5px); }
+  40% { transform: translateY(-20px) scale(1.05); opacity: 0.9; filter: blur(2px); }
+  60% { transform: translateY(10px) scale(1.02); opacity: 0.95; filter: blur(1px); }
+  80% { transform: translateY(-5px) scale(1.01); opacity: 0.98; filter: blur(0.5px); }
+  100% { transform: translateY(0) scale(1); opacity: 1; filter: blur(0px); } /* HUGGING FACE FIX: Explicit 0px ensures clean state in production */
 }
-*/
 @keyframes floatUp {
   0% { transform: translateY(100px) rotate(0deg); opacity: 0; }
   50% { opacity: 0.5; }
@@ -294,26 +261,17 @@ body, .stApp {
   border-radius: 0 0 50px 50px; 
   margin-bottom: 3rem; 
   
-  /* CRITICAL FIX: Removed levitate-smooth (uses transform) - it creates stacking contexts */
-  /* Only keep background animations that don't create stacking contexts */
   animation: 
     slide-in-top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both,
-    liquid-flow 20s ease infinite;
+    liquid-flow 20s ease infinite,
+    levitate-smooth 6s ease-in-out infinite;
     
-  /* CRITICAL FIX: Removed transform from will-change - prevents stacking context creation */
-  will-change: background-position;
+  will-change: background-position, transform, margin-top;
   
-  /* Z-INDEX FIX: Header always on top - explicit high z-index */
+  /* Z-INDEX FIX: Header always on top */
   position: relative;
-  z-index: 1000;
-  /* REMOVED isolation: isolate - it was creating stacking context issues */
-  
-  /* CRITICAL: Ensure no blur effects on banner container */
-  filter: none !important;
-  backdrop-filter: none !important;
-  
-  /* CRITICAL: No transforms that create stacking contexts */
-  transform: none !important;
+  z-index: 100;
+  isolation: isolate; /* Create new stacking context */
   
   box-shadow: 0 25px 60px -15px rgba(37, 99, 235, 0.5); /* Blue Shadow */
 }
@@ -328,23 +286,13 @@ body, .stApp {
   letter-spacing: -2px;
   line-height: 1;
   
-  /* CRITICAL FIX: Isolate header from parent stacking contexts */
-  /* Use position relative to create own stacking context independent of parent */
+  /* Z-INDEX FIX: Header text above all other elements */
   position: relative;
-  z-index: 9999; /* Very high z-index to override any Streamlit layers and ensure always on top */
+  z-index: 101; /* Above typing subtitle and background */
   
-  /* CRITICAL: Ensure header creates its own stacking context cleanly */
-  /* Avoid transforms on parent, use position-based isolation instead */
-  isolation: isolate; /* Create isolated stacking context for header - independent of parent */
-  
-  /* CRITICAL: Ensure no blur is applied to header text - multiple safeguards */
-  filter: none !important;
-  backdrop-filter: none !important;
-  -webkit-filter: none !important;
-  
-  /* CRITICAL FIX: Removed transform: translateZ(0) - it creates stacking context within parent */
-  /* Use will-change without transform to optimize without affecting stacking */
-  will-change: opacity; /* Optimize for animation without creating stacking context */
+  /* HUGGING FACE FIX: Ensure blur from epicEntrance animation doesn't persist in production */
+  /* Animation ends with filter: blur(0) at 100%, but ensure it's clean in all builds */
+  /* Note: !important here would break the animation, so we rely on animation completion */
 
   /* Gradient text with shimmer */
   background: linear-gradient(
@@ -361,10 +309,14 @@ body, .stApp {
   -webkit-text-fill-color: transparent;
   background-clip: text;
 
-  /* Combined animations - REMOVED epicEntrance blur animation */
+  /* Combined animations */
   animation: 
+    epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
     gradientShimmer 8s linear infinite,
     glowPulse 4s ease-in-out infinite;
+  
+  /* HUGGING FACE FIX: Force filter reset after animation to prevent blur persistence */
+  animation-fill-mode: forwards;
 
   /* 3D text effect */
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.1),
@@ -383,7 +335,7 @@ body, .stApp {
   margin-top: 3rem;
   animation: fadeIn 1s ease-out 2.5s both;
   position: relative;
-  z-index: 1; /* Below header, above background */
+  z-index: 3; /* Above typing subtitle */
 }
 
 .stat-badge {
@@ -455,7 +407,7 @@ body, .stApp {
     /* LAYERING FIX: Below header, stable positioning */
     position: relative;
     z-index: 1;
-    /* REMOVED isolation: isolate - can cause stacking context issues */
+    isolation: isolate; /* Create stacking context */
 }
 
 .job-card:hover {
@@ -568,7 +520,7 @@ ul.clean-list li::before {
     
     /* Z-INDEX: Below header, above content */
     z-index: 1;
-    /* REMOVED isolation: isolate - can cause stacking context issues */
+    isolation: isolate; /* Create stacking context */
     
     /* Smooth transitions */
     transition: opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
@@ -807,7 +759,7 @@ ul.clean-list li::before {
 /* Hero CTA Button (Epic Version) */
 .hero-cta-container {
   position: relative;
-  z-index: 1; /* Below header, above background */
+  z-index: 3; /* Above typing subtitle */
   margin-top: 2rem;
   animation: fadeIn 1s ease-out 2s both;
 }
