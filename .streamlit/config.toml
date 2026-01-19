@@ -2,3 +2,7 @@
 enableCORS = false
 enableXsrfProtection = false
 maxUploadSize = 5
+
+[client]
+toolbarMode = "viewer"  # Forces the menu to always show
+showErrorDetails = true

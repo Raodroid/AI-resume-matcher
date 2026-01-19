@@ -14,15 +14,27 @@ from groq import Groq
 
 load_dotenv()
 
+
 st.set_page_config(
-    page_title="HirePilot.",
+    page_title="HirePilot.Ai",
     page_icon="🚀",
     layout="wide",
-    initial_sidebar_state="collapsed",
     menu_items={
-        'Get Help': None,
-        'Report a bug': None,
-        'About': "HirePilot: AI-Powered Job Search"
+        'Report a bug': 'https://github.com/Raodroid/issues',
+        'About': """
+        # 🚀 HirePilot.Ai
+        
+        **The AI-Powered Job Search Assistant**
+        
+        > *"Stop searching, start landing."*
+        
+        ---
+        
+        **Version:** 1.2.0  
+        **Built with:** Python, Streamlit & Groq LPU  
+        
+        Made with AI for job searchers.
+        """
     }
 )
 
@@ -226,27 +238,6 @@ st.markdown("""
     </div>
 </div>""", unsafe_allow_html=True)
 
-
-# Sidebar
-with st.sidebar:
-    with st.expander("🐣 Quick Start Guide", expanded=True):
-        st.markdown("""
-        **1. Upload:** Upload resume in Step 1.
-        
-        **2. Search:** Enter Job & Location in Step 2.
-        
-        **3. Results:** View matches, Deep Dive, and Apply below.
-        """)
-    
-    st.markdown("---")
-    
-    if st.session_state.resume_uploaded:
-        if st.button("🗑️ Reset / New Resume"):
-            st.session_state.resume_text = ""
-            st.session_state.resume_uploaded = False
-            st.session_state.matches_df = pd.DataFrame()
-            st.session_state.jobs_df = pd.DataFrame()
-            st.rerun()
 
 # --- STEP 1: UPLOAD RESUME ---
 st.markdown('<div id="step-1-header" class="step-header" data-step="1"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
@@ -518,4 +509,5 @@ if not st.session_state.matches_df.empty:
 
 # Footer
 st.markdown("---")
-st.markdown("<div style='text-align: center; opacity: 0.7;'>Resume Matcher • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align: center; opacity: 0.7;'> HirePilot.Ai • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
+

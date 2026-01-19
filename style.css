@@ -275,23 +275,85 @@ body, .stApp {
 }
 
 /* ==========================================================================
-   3. HEADER & HERO SECTION
+   3. HEADER & HERO SECTION (FIXED)
    ========================================================================== */
+
+/* -- Version 2: Epic Hero Override -- */
+.top-banner {
+  text-align: center;
+  padding: 8rem 2rem 10rem 2rem;
+  margin-bottom: 4rem;
+  position: relative;
+  overflow: hidden;
+
+  /* EXACT UI BACKGROUND */
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  border-bottom: 1px solid var(--glass-border);
+
+  /* Add subtle grid for depth */
+  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size: 50px 50px;
+
+  /* Center content */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+}
 
 /* Header Text (Version 2 - Epic) */
 .top-banner h1 {
   font-size: 6rem; /* Much larger */
   font-weight: 900; /* Extra bold */
-  color: var(--slate-200);
   margin: 0 0 0.5rem 0;
   letter-spacing: -2px;
   line-height: 1;
   
+  /* CRITICAL FOR ROCKET VISIBILITY */
+  position: relative;
+  z-index: 1;
+  display: inline-block; /* Keeps the box tight to text so Rocket sits next to it */
 
-  /* Combined animations */
+  /* GRADIENT TEXT SETUP (Required for Shimmer) */
+  background: linear-gradient(
+    90deg,
+    var(--slate-200) 0%,
+    var(--primary-blue) 20%,
+    var(--info-cyan) 40%,
+    var(--primary-blue) 60%,
+    var(--slate-200) 80%,
+    var(--primary-blue) 100%
+  );
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent; /* Fallback */
+
+  /* ANIMATIONS (Fixed Syntax) */
   animation: 
     epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-    gradientShimmer 8s linear infinite,
+    gradientShimmer 8s linear infinite;
+    /* Removed glowPulse to match your specific request, or add it back if you want glow */
+}
+
+/* Rocket Icon Animation */
+.top-banner h1::after {
+  content: "🚀";
+  position: absolute;
+  top: -30px;
+  right: -80px;
+  font-size: 4rem;
+  
+  /* Animations */
+  animation: 
+    floatUp 8s ease-in-out infinite,
+    gradientShimmer 12s linear infinite;
+    
+  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
+  z-index: 2;
 }
 
 /* Hero Stats Badges */
@@ -302,7 +364,7 @@ body, .stApp {
   margin-top: 3rem;
   animation: fadeIn 1s ease-out 2.5s both;
   position: relative;
-  z-index: 3; /* Above typing subtitle */
+  z-index: 3; /* Ensures it sits above typing subtitle */
 }
 
 .stat-badge {
@@ -317,11 +379,13 @@ body, .stApp {
   position: relative;
   overflow: hidden;
 }
+
 .stat-badge:hover {
   transform: translateY(-5px);
   border-color: var(--primary-blue);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
+
 .stat-badge::before {
   content: "";
   position: absolute;
@@ -332,9 +396,11 @@ body, .stApp {
   background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
   transition: 0.5s;
 }
+
 .stat-badge:hover::before {
   left: 100%;
 }
+
 .stat-badge .stat-number {
   font-size: 2.5rem;
   font-weight: 800;
@@ -342,6 +408,7 @@ body, .stApp {
   margin: 0;
   line-height: 1;
 }
+
 .stat-badge .stat-label {
   font-size: 0.9rem;
   color: var(--slate-400);
@@ -1084,4 +1151,5 @@ ul.clean-list li::before {
   .hero-cta-button { font-size: 1.2rem !important; padding: 1rem 2rem !important; min-width: 250px; }
   .hero-stats { flex-direction: column; align-items: center; }
 }
+
 

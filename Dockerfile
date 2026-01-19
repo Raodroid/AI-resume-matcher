@@ -1,4 +1,4 @@
-﻿FROM python:3.11.9
+﻿FROM python:3.11.9-slim
 
 # Prevent Python from writing .pyc files & enable unbuffered logs
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -39,6 +39,8 @@ EXPOSE 7860
 
 # Start Streamlit
 CMD ["streamlit", "run", "app.py", "--server.port=7860", "--server.address=0.0.0.0"]
+
+
 
 
 
