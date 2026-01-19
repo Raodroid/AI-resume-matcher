@@ -18,23 +18,6 @@ st.set_page_config(
     page_title="HirePilot.Ai",
     page_icon="🚀",
     layout="wide",
-    menu_items={
-        'Report a bug': 'https://github.com/Raodroid/issues',
-        'About': """
-        # 🚀 HirePilot.Ai
-        
-        **The AI-Powered Job Search Assistant**
-        
-        > *"Stop searching, start landing."*
-        
-        ---
-        
-        **Version:** 1.2.0  
-        **Built with:** Python, Streamlit & Groq LPU  
-        
-        Made with AI for job searchers.
-        """
-    }
 )
 
 # --- 2. LOAD CSS ---
