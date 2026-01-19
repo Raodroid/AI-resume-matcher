@@ -275,31 +275,20 @@ body, .stApp {
 }
 
 /* ==========================================================================
-   3. HEADER & HERO SECTION
+   3. HEADER & HERO SECTION (FIXED LAYERING)
    ========================================================================== */
 
-/* Header Text (Version 2 - Epic) */
-.top-banner h1 {
-  font-size: 6rem; /* Much larger */
-  font-weight: 900; /* Extra bold */
-  color: var(--slate-200);
-  margin: 0 0 0.5rem 0;
-  letter-spacing: -2px;
-  line-height: 1;
-  
-    /* EXACT UI BACKGROUND */
-  background: linear-gradient(
-    90deg,
-    var(--slate-200) 0%,
-    var(--primary-blue) 20%,
-    var(--info-cyan) 40%,
-    var(--primary-blue) 60%,
-    var(--slate-200) 80%,
-    var(--primary-blue) 100%
-  );
+/* 1. The Container (Added "isolation" to trap backgrounds in the back) */
+.top-banner {
+  text-align: center;
+  padding: 8rem 2rem 10rem 2rem;
+  margin-bottom: 4rem;
+  position: relative;
+  overflow: hidden;
 
-  
-  
+  /* EXACT UI BACKGROUND */
+  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+  border-bottom: 1px solid var(--glass-border);
 
   /* Add subtle grid for depth */
   background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
@@ -312,14 +301,57 @@ body, .stApp {
   align-items: center;
   justify-content: center;
   min-height: 60vh;
-
-  /* Combined animations */
-  animation: 
-    epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-    gradientShimmer 8s linear infinite,
+  
+  /* CRITICAL FIX: Creates a new stacking context */
+  isolation: isolate; 
+  z-index: 1;
 }
 
-/* Hero Stats Badges */
+/* 2. Header Text (Version 2 - Epic) */
+.top-banner h1 {
+  font-size: 6rem; /* Much larger */
+  font-weight: 900; /* Extra bold */
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -2px;
+  line-height: 1;
+  
+/* Header Text (Fixed Visibility) */
+.top-banner h1 {
+  font-size: 6rem;
+  font-weight: 900;
+  margin: 0 0 0.5rem 0;
+  letter-spacing: -2px;
+  line-height: 1;
+  
+  /* CRITICAL: Positioning */
+  position: relative;
+  z-index: 100; /* High Z-index to sit on top */
+  display: inline-block;
+
+  /* --- THE FIX: USE SOLID COLOR + GLOW INSTEAD OF CLIPPING --- */
+  
+  /* 1. Set a solid, visible color */
+  color: #e2e8f0; /* Slate-200 (White-ish) */
+
+  /* 2. Add a strong Shadow/Glow to mimic the gradient feel */
+  text-shadow: 
+    0 0 40px rgba(59, 130, 246, 0.6), /* Blue Glow */
+    0 0 80px rgba(59, 130, 246, 0.4);
+}
+
+/* Add this animation for the pulsing glow effect */
+@keyframes textGlowPulse {
+  0%, 100% { text-shadow: 0 0 40px rgba(59, 130, 246, 0.6), 0 0 80px rgba(59, 130, 246, 0.4); }
+  50% { text-shadow: 0 0 60px rgba(6, 182, 212, 0.8), 0 0 100px rgba(59, 130, 246, 0.6); }
+}
+
+  /* ANIMATIONS */
+  animation: 
+    epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    gradientShimmer 8s linear infinite;
+}
+
+/* 4. Hero Stats Badges */
 .hero-stats {
   display: flex;
   justify-content: center;
@@ -327,7 +359,7 @@ body, .stApp {
   margin-top: 3rem;
   animation: fadeIn 1s ease-out 2.5s both;
   position: relative;
-  z-index: 3; /* Above typing subtitle */
+  z-index: 10; /* Keeps it clickable */
 }
 
 .stat-badge {
@@ -342,11 +374,13 @@ body, .stApp {
   position: relative;
   overflow: hidden;
 }
+
 .stat-badge:hover {
   transform: translateY(-5px);
   border-color: var(--primary-blue);
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
 }
+
 .stat-badge::before {
   content: "";
   position: absolute;
@@ -357,9 +391,11 @@ body, .stApp {
   background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
   transition: 0.5s;
 }
+
 .stat-badge:hover::before {
   left: 100%;
 }
+
 .stat-badge .stat-number {
   font-size: 2.5rem;
   font-weight: 800;
@@ -367,6 +403,7 @@ body, .stApp {
   margin: 0;
   line-height: 1;
 }
+
 .stat-badge .stat-label {
   font-size: 0.9rem;
   color: var(--slate-400);
@@ -374,6 +411,7 @@ body, .stApp {
   text-transform: uppercase;
   letter-spacing: 1px;
 }
+
 
 
 /* ==========================================================================
