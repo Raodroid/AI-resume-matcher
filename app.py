@@ -240,30 +240,41 @@ def get_ai_analysis(job_description, job_title, employer_name):
         return {"summary": f"⚠️ Groq Error: {str(e)[:200]}"}
 
 @st.cache_data(show_spinner=False, ttl=3600)
-def generate_cover_letter(resume_text, job_description, job_title, employer_name, current_draft=None):
+def generate_cover_letter(resume_text, job_description, job_title, employer_name, audit_text=None, current_draft=None):
     """
-    Generates a high-quality cover letter.
-    - FIRST DRAFT: Uses a strong model + strict structure for a perfect start.
-    - REGENERATE: Drastically shifts tone (Bold, Storyteller, etc.) for variety.
+    Generates a cover letter using Resume + Optional Degree Audit.
     """
     if not GROQ_ENABLED: return "⚠️ Enable AI to generate cover letter."
     
     try:
         # --- 1. DEFINE TONES ---
         tones = {
-            "Bold": "CONFIDENT & DISRUPTIVE. Short, punchy sentences. Be fearless. Sell the candidate as a high-ROI asset.",
-            "Storyteller": "NARRATIVE & HUMAN. Open with a specific problem the candidate solved. Connect emotionally.",
-            "Analytical": "DATA-OBSESSED. Focus almost entirely on numbers, metrics, and outcomes. Cut the fluff.",
-            "Passionate": "MISSION-DRIVEN. Focus on the company's mission and why the candidate loves it. Warm energy.",
+            "Storyteller": "NARRATIVE. weave a story connecting academic struggles/wins to the job.",
+            "Analytical": "DATA-OBSESSED. Focus on grades, project metrics, and hard skills.",
+            "Passionate": "MISSION-DRIVEN. Focus on why this specific field matters to you.",
         }
 
         # --- 2. SYSTEM PROMPT ---
-        system_prompt = "You are an elite Career Strategist. You write strictly evidence-based cover letters. No fluff."
+        system_prompt = "You are an elite Career Strategist. You use academic and professional data to prove value."
 
-        # --- 3. MODE SELECTION ---
+        # --- 3. PREPARE DATA INPUTS ---
+        # We combine Resume and Audit into the context
+        data_context = f"""
+        RESUME CONTENT:
+        {resume_text[:15000]}
+        """
+        
+        if audit_text:
+            data_context += f"""
+            
+            DEGREE AUDIT / TRANSCRIPT:
+            {audit_text[:10000]}
+            (Use this to find relevant Coursework, Capstone Projects, or High Grades that match the JD)
+            """
+
+        # --- 4. MODE SELECTION ---
         if current_draft:
-            # === REGENERATE MODE (Drastic Shift) ===
-            # Pick a random persona to give the user a totally new angle
+            # === REGENERATE MODE ===
             selected_tone_name, selected_tone_desc = random.choice(list(tones.items()))
             
             base_instruction = f"""
@@ -273,32 +284,37 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
             **Style Guide:** {selected_tone_desc}
             
             **TASK:**
-            1. Ignore the phrasing of the previous draft.
-            2. Write a BRAND NEW letter for {job_title} at {employer_name}.
-            3. Use the Resume facts, but present them strictly in the style of: {selected_tone_name}.
+            1. Write a BRAND NEW letter for {job_title} at {employer_name}.
+            2. Use the RESUME and DEGREE AUDIT data.
+            3. If the Degree Audit is provided, mention 1 relevant advanced course or academic project that proves skill.
             
             PREVIOUS DRAFT (Do NOT sound like this):
             "{current_draft[:500]}..."
+            
+            DATA SOURCE:
+            {data_context}
+            
+            JOB DESCRIPTION:
+            {job_description[:10000]}
             """
         else:
-            # === FIRST DRAFT MODE (High Quality) ===
-            # We use a very specific instruction to ensure the first try is great
+            # === FIRST DRAFT MODE ===
             base_instruction = f"""
             Write a perfect, high-impact cover letter for {job_title} at {employer_name}.
             
             ### STRATEGY:
-            - **Tone:** Professional, Confident, and Direct.
-            - **Focus:** Prove "Value Fit" using metrics from the resume.
-            - **Forbidden:** Do not use clichés like "I am writing to apply" or "I believe I am a good fit". Start strong.
+            - **Tone:** Professional & Evidence-Based.
+            - **Academic Edge:** If Degree Audit data is present, explicitly mention relevant coursework or academic honors that align with the Job Description.
+            - **Focus:** Prove "Value Fit".
             
-            RESUME DATA:
-            {resume_text[:15000]}
+            DATA SOURCE:
+            {data_context}
             
             JOB DESCRIPTION:
             {job_description[:10000]}
             """
 
-        # --- 4. TEMPLATE INSTRUCTION (Strictly Enforced) ---
+        # --- 5. TEMPLATE INSTRUCTION ---
         template_instruction = f"""
         ### STRUCTURE & FORMATTING RULES:
         
@@ -313,35 +329,31 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         
         Dear Hiring Manager,
         
-        ### 2. BODY (Must be 4 Paragraphs):
-        * **Paragraph 1 (The Hook):** Do NOT start boring. State clearly who you are (e.g., "As a Senior Dev with 5 years exp..."). Mention exactly why this specific company interests you.
-        * **Paragraph 2 (The Evidence):** Choose the single most impressive achievement from the resume that matches the Job Description. Use numbers/metrics.
-        * **Paragraph 3 (The Fit):** Connect your soft skills or work ethic to the company's mission/values.
-        * **Paragraph 4 (The Close):** Reiterate excitement and ask for the interview confidently.
+        ### 2. BODY (Strictly 4 Paragraphs):
+        * **Paragraph 1 (The Hook):** State who you are. Mention exactly why this company interests you.
+        * **Paragraph 2 (The Evidence):** Use the BEST achievement from the Resume OR the Degree Audit (e.g. "In my Advanced Algorithms capstone...").
+        * **Paragraph 3 (The Fit):** Work ethic and values.
+        * **Paragraph 4 (The Close):** Ask for the interview.
         
         ### 3. SIGN-OFF:
         "Yours Sincerely,"
         [Candidate Name]
         
         ### 4. DATA RULES:
-        * Use REAL Name/Email/Phone from resume. No "[Your Name]".
-        * Fix Name Casing (e.g. "TAN RIHAO").
+        * Use REAL Name/Email/Phone from resume.
+        * Fix Name Casing.
         """
 
-        # Combine instructions
         final_prompt = base_instruction + "\n" + template_instruction
         
-        # --- 5. CALL AI ---
-        # ALWAYS use the strong model (70b) even for the first draft to ensure quality
-        model_choice = "llama-3.3-70b-versatile"
-        
+        # --- 6. CALL AI ---
         completion = client.chat.completions.create(
-            model=model_choice, 
+            model="llama-3.3-70b-versatile", 
             messages=[
                 {"role": "system", "content": system_prompt}, 
                 {"role": "user", "content": final_prompt}
             ],
-            temperature=0.7, # Balanced creativity
+            temperature=0.7,
             max_tokens=1500,
         )
         return completion.choices[0].message.content
@@ -400,18 +412,20 @@ st.markdown("""
 </div>""", unsafe_allow_html=True)
 
 
-# --- STEP 1: UPLOAD RESUME ---
-st.markdown('<div id="step-1-header" class="step-header" data-step="1"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
+# --- STEP 1: UPLOAD RESUME & OPTIONAL AUDITS ---
+st.markdown('<div id="step-1-header" class="step-header" data-step="1"><div class="step-number">1</div> Upload Documents</div>', unsafe_allow_html=True)
 st.markdown('<div id="step-1-content" class="step-content" data-step="1">', unsafe_allow_html=True)
 
+# 1. RESUME LOGIC (Mandatory)
 if not st.session_state.resume_uploaded:
-    uploaded_file = st.file_uploader("Upload PDF or DOCX", type=['pdf', 'docx'], label_visibility="collapsed")
+    st.info("Start by uploading your Resume.")
+    uploaded_file = st.file_uploader("Upload Resume (PDF or DOCX)", type=['pdf', 'docx'], label_visibility="collapsed", key="resume_uploader")
 
     if uploaded_file and (st.session_state.last_uploaded_file != uploaded_file.name):
         progress_text = "Analyzing Profile..."
         my_bar = st.progress(0, text=progress_text)
         
-        # Add custom progress bar styling
+        # Custom progress bar styling
         st.markdown("""
         <style>
         .stProgress > div > div > div {
@@ -424,11 +438,12 @@ if not st.session_state.resume_uploaded:
         """, unsafe_allow_html=True)
     
         try:
-            # Simulate progress for smoother feel
+            # Simulate progress
             for percent in range(0, 101, 20):
                 time.sleep(0.05)
                 my_bar.progress(percent, text=progress_text)
             
+            # Extract Text
             if uploaded_file.name.endswith('.pdf'):
                 text = extract_text_from_pdf(uploaded_file)
             else:
@@ -440,7 +455,7 @@ if not st.session_state.resume_uploaded:
                 st.session_state.last_uploaded_file = uploaded_file.name
                 
                 my_bar.empty()
-                if lottie_upload:
+                if 'lottie_upload' in globals() and lottie_upload:
                     st_lottie(lottie_upload, height=150, key="upload_anim", loop=False)
                 st.toast("✅ Resume uploaded successfully!", icon="✨")
                 time.sleep(1)
@@ -451,12 +466,62 @@ if not st.session_state.resume_uploaded:
         except Exception as e:
             my_bar.empty()
             st.error(f"Error: {e}")
+
+# 2. POST-UPLOAD STATE (Resume Done -> Show Optional Audit)
 else:
     st.markdown('<div data-step-complete="1" style="display:none;"></div>', unsafe_allow_html=True)
-    with st.expander("Resume is loaded and ready for matching.", expanded=True):
-        if st.button("Upload Different Resume"):
-            st.session_state.resume_uploaded = False
-            st.rerun()
+    
+    with st.expander("✅ Documents Loaded", expanded=True):
+        
+        # A. Resume Status
+        c1, c2 = st.columns([3, 1])
+        with c1:
+            st.success(f"**Resume:** {st.session_state.last_uploaded_file}")
+        with c2:
+            if st.button("🔄 Reset All"):
+                st.session_state.resume_uploaded = False
+                st.session_state.resume_text = ""
+                st.session_state.audit_text = None
+                st.rerun()
+
+        st.divider()
+
+        # B. Degree Audit (Multiple Files Allowed)
+        st.markdown("### 🎓 Student / Grad Mode (Optional)")
+        st.caption("Upload transcripts, degree audits, or certificates. The AI will scan ALL files.")
+        
+        # CHANGED: accept_multiple_files=True
+        audit_files = st.file_uploader(
+            "Upload Audits (PDF)", 
+            type=['pdf'], 
+            key="audit_uploader", 
+            accept_multiple_files=True 
+        )
+        
+        # Logic to process multiple files
+        if audit_files:
+            combined_audit_text = ""
+            file_names = []
+            
+            with st.spinner("Combining academic records..."):
+                for pdf_file in audit_files:
+                    text = extract_text_from_pdf(pdf_file)
+                    if text:
+                        # Add a separator so the AI knows where one doc ends and another starts
+                        combined_audit_text += f"\n\n--- DOCUMENT: {pdf_file.name} ---\n{text}"
+                        file_names.append(pdf_file.name)
+            
+            st.session_state.audit_text = combined_audit_text
+            
+            # Show summary
+            if len(file_names) > 0:
+                st.success(f"✅ {len(file_names)} Academic Documents Loaded")
+                with st.popover("View Loaded Files"):
+                    for name in file_names:
+                        st.text(f"• {name}")
+        else:
+            st.session_state.audit_text = None
+
 st.markdown('</div>', unsafe_allow_html=True)
 
 # --- STEP 2: SEARCH JOBS ---
@@ -654,7 +719,7 @@ if not st.session_state.matches_df.empty:
         st.markdown("<div style='margin-top: 1.5rem;'>", unsafe_allow_html=True)
         col_b1, col_b2 = st.columns([1, 1])
         
-# --- BUTTON 1: COVER LETTER (Fixed Regeneration) ---
+# --- BUTTON 1: COVER LETTER (Integrated with Degree Audit) ---
         with col_b1:
             # Check if letter exists to determine label
             is_regen = bool(cl_text)
@@ -662,19 +727,22 @@ if not st.session_state.matches_df.empty:
             
             if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
                 if GROQ_ENABLED:
-                    with st.spinner("✍️ Reviewing and enhancing letter..." if is_regen else "✍️ Drafting letter..."):
+                    with st.spinner("✍️ Analyzing profile & drafting letter..."):
                         
-                        # Pass 'cl_text' as the 'current_draft' argument
-                        # If cl_text is None (first time), it generates from scratch.
-                        # If cl_text exists, it triggers the "Editor" mode.
+                        # 1. RETRIEVE AUDIT DATA SAFELY
+                        # We get it from session_state. If it's not there, it defaults to None.
+                        audit_data = st.session_state.get('audit_text', None)
+                        
+                        # 2. CALL AI FUNCTION
                         letter = generate_cover_letter(
                             st.session_state.resume_text, 
                             job_desc, 
                             job_title_txt, 
                             employer,
-                            current_draft=cl_text # <--- THIS IS THE KEY FIX
+                            audit_text=audit_data,    # <--- Pass the retrieved data here
+                            current_draft=cl_text     # <--- Pass existing text for "Editor Mode"
                         )
-                        
+                        # 3. SAVE & REFRESH
                         st.session_state.cover_letters[job_id] = letter
                         st.rerun()
                 else:
