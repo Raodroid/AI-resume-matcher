@@ -12,7 +12,6 @@ from groq import Groq
 from datetime import datetime
 import streamlit.components.v1 as components
 import random
-from groq import RateLimitError, APIError
 
 # --- 1. CONFIGURATION & SETUP ---
 
@@ -240,42 +239,25 @@ def get_ai_analysis(job_description, job_title, employer_name):
     except Exception as e:
         return {"summary": f"⚠️ Groq Error: {str(e)[:200]}"}
 
-import os
-from groq import Groq
 
 @st.cache_data(show_spinner=False, ttl=3600)
-def generate_cover_letter(resume_text, job_description, job_title, employer_name, audit_text=None, current_draft=None):
+def generate_cover_letter(resume_text, job_description, job_title, employer_name,audit_text):
     """
     Generates a high-quality, 4-paragraph evidence-based cover letter.
-    Reverted to STABLE template.
     """
-    # 1. Safety Check
-    api_key = os.environ.get("GROQ_API_KEY")
-    if not api_key: 
-        return "⚠️ Enable AI to generate cover letter."
-    
-    client = Groq(api_key=api_key)
-
+    if not GROQ_ENABLED: return "⚠️ Enable AI to generate cover letter."
     try:
-        # 2. Prepare Data Context (Resume + Optional Audit)
-        # We append the audit to the resume section so the AI sees all qualifications
-        full_profile = resume_text[:15000]
-        if audit_text:
-            full_profile += f"\n\n### ACADEMIC TRANSCRIPT / DEGREE AUDIT:\n{audit_text[:10000]}"
-
-        # 3. System Prompt (Stable)
         system_prompt = """
         You are an elite Career Strategist and Professional Copywriter.
         Your goal is to write a cover letter that is persuasive, human, and focuses on "Value Fit" and "Motivation".
         Do NOT be robotic. Do NOT provide conversational filler (e.g. "Here is the letter").
         """
         
-        # 4. User Prompt (Strict Template)
         user_prompt = f"""
         Write a high-impact cover letter for the role of "{job_title}" at "{employer_name}".
         
-        RESUME & ACADEMIC DATA:
-        {full_profile}
+        RESUME CONTENT:
+        {resume_text[:15000]}
         
         JOB DESCRIPTION:
         {job_description[:10000]}
@@ -300,13 +282,12 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         
         ### 3. BODY STRUCTURE (Strictly 4 Paragraphs):
         * **PARAGRAPH 1 (The Hook):** Introduce yourself by name and degree/university. State you are applying for **{job_title}** at **{employer_name}**. Mention why you admire the company (based on JD).
-        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume (or academic projects) that directly prove you can solve their key requirements. Use numbers.
+        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume that directly prove you can solve their key requirements. Use numbers.
         * **PARAGRAPH 3 (Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect personal values to company mission.
         * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and include a confident call to action for an interview.
         * **SIGN-OFF:** End with "Yours Sincerely," followed by a newline and the [Candidate Name].
         """
         
-        # 5. Call AI (Using High-Speed Model)
         completion = client.chat.completions.create(
             model="llama-3.1-8b-instant", 
             messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
@@ -314,7 +295,6 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
             max_tokens=1500,
         )
         return completion.choices[0].message.content
-        
     except Exception as e:
         return f"⚠️ Error: {e}"
 
@@ -697,7 +677,6 @@ if not st.session_state.matches_df.empty:
                             job_title_txt, 
                             employer,
                             audit_text=audit_data,    # <--- Pass the retrieved data here
-                            current_draft=cl_text     # <--- Pass existing text for "Editor Mode"
                         )
                         # 3. SAVE & REFRESH
                         st.session_state.cover_letters[job_id] = letter
