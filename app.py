@@ -12,6 +12,7 @@ from groq import Groq
 from datetime import datetime
 import streamlit.components.v1 as components
 import random
+from groq import RateLimitError, APIError
 
 # --- 1. CONFIGURATION & SETUP ---
 
@@ -239,86 +240,48 @@ def get_ai_analysis(job_description, job_title, employer_name):
     except Exception as e:
         return {"summary": f"⚠️ Groq Error: {str(e)[:200]}"}
 
+import os
+from groq import Groq
+
 @st.cache_data(show_spinner=False, ttl=3600)
 def generate_cover_letter(resume_text, job_description, job_title, employer_name, audit_text=None, current_draft=None):
     """
-    Generates a cover letter using Resume + Optional Degree Audit.
+    Generates a high-quality, 4-paragraph evidence-based cover letter.
+    Reverted to STABLE template.
     """
-    if not GROQ_ENABLED: return "⚠️ Enable AI to generate cover letter."
+    # 1. Safety Check
+    api_key = os.environ.get("GROQ_API_KEY")
+    if not api_key: 
+        return "⚠️ Enable AI to generate cover letter."
     
+    client = Groq(api_key=api_key)
+
     try:
-        # --- 1. DEFINE TONES ---
-        tones = {
-            "Storyteller": "NARRATIVE. weave a story connecting academic struggles/wins to the job.",
-            "Analytical": "DATA-OBSESSED. Focus on grades, project metrics, and hard skills.",
-            "Passionate": "MISSION-DRIVEN. Focus on why this specific field matters to you.",
-        }
+        # 2. Prepare Data Context (Resume + Optional Audit)
+        # We append the audit to the resume section so the AI sees all qualifications
+        full_profile = resume_text[:15000]
+        if audit_text:
+            full_profile += f"\n\n### ACADEMIC TRANSCRIPT / DEGREE AUDIT:\n{audit_text[:10000]}"
 
-        # --- 2. SYSTEM PROMPT ---
-        system_prompt = "You are an elite Career Strategist. You use academic and professional data to prove value."
-
-        # --- 3. PREPARE DATA INPUTS ---
-        # We combine Resume and Audit into the context
-        data_context = f"""
-        RESUME CONTENT:
-        {resume_text[:15000]}
+        # 3. System Prompt (Stable)
+        system_prompt = """
+        You are an elite Career Strategist and Professional Copywriter.
+        Your goal is to write a cover letter that is persuasive, human, and focuses on "Value Fit" and "Motivation".
+        Do NOT be robotic. Do NOT provide conversational filler (e.g. "Here is the letter").
         """
         
-        if audit_text:
-            data_context += f"""
-            
-            DEGREE AUDIT / TRANSCRIPT:
-            {audit_text[:10000]}
-            (Use this to find relevant Coursework, Capstone Projects, or High Grades that match the JD)
-            """
-
-        # --- 4. MODE SELECTION ---
-        if current_draft:
-            # === REGENERATE MODE ===
-            selected_tone_name, selected_tone_desc = random.choice(list(tones.items()))
-            
-            base_instruction = f"""
-            You are an Expert Copywriter. The user wants a DRASTICALLY different version.
-            
-            ### NEW PERSONA: {selected_tone_name.upper()}
-            **Style Guide:** {selected_tone_desc}
-            
-            **TASK:**
-            1. Write a BRAND NEW letter for {job_title} at {employer_name}.
-            2. Use the RESUME and DEGREE AUDIT data.
-            3. If the Degree Audit is provided, mention 1 relevant advanced course or academic project that proves skill.
-            
-            PREVIOUS DRAFT (Do NOT sound like this):
-            "{current_draft[:500]}..."
-            
-            DATA SOURCE:
-            {data_context}
-            
-            JOB DESCRIPTION:
-            {job_description[:10000]}
-            """
-        else:
-            # === FIRST DRAFT MODE ===
-            base_instruction = f"""
-            Write a perfect, high-impact cover letter for {job_title} at {employer_name}.
-            
-            ### STRATEGY:
-            - **Tone:** Professional & Evidence-Based.
-            - **Academic Edge:** If Degree Audit data is present, explicitly mention relevant coursework or academic honors that align with the Job Description.
-            - **Focus:** Prove "Value Fit".
-            
-            DATA SOURCE:
-            {data_context}
-            
-            JOB DESCRIPTION:
-            {job_description[:10000]}
-            """
-
-        # --- 5. TEMPLATE INSTRUCTION ---
-        template_instruction = f"""
-        ### STRUCTURE & FORMATTING RULES:
+        # 4. User Prompt (Strict Template)
+        user_prompt = f"""
+        Write a high-impact cover letter for the role of "{job_title}" at "{employer_name}".
         
-        ### 1. HEADER (Must be exact):
+        RESUME & ACADEMIC DATA:
+        {full_profile}
+        
+        JOB DESCRIPTION:
+        {job_description[:10000]}
+        
+        ### 1. HEADER FORMAT (Strictly Follow This):
+        
         [Candidate Name]
         [Candidate Email] | [Candidate Phone]
         
@@ -329,30 +292,24 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         
         Dear Hiring Manager,
         
-        ### 2. BODY (Strictly 4 Paragraphs):
-        * **Paragraph 1 (The Hook):** State who you are. Mention exactly why this company interests you.
-        * **Paragraph 2 (The Evidence):** Use the BEST achievement from the Resume OR the Degree Audit (e.g. "In my Advanced Algorithms capstone...").
-        * **Paragraph 3 (The Fit):** Work ethic and values.
-        * **Paragraph 4 (The Close):** Ask for the interview.
+        ### 2. CRITICAL RULES:
+        * **EXTRACT REAL DATA:** Use the Name, Phone, and Email found in the resume content. Do NOT use placeholders like "[Your Name]" unless the data is completely missing.
+        * **NO "JOHN":** Never invent a name. If name is missing, use "[Your Name]".
+        * **FIX CASING:** Auto-correct names to Title Case (e.g. "TAN RIHAO" -> "Tan Rihao").
+        * **NO MARKDOWN LINKS:** Write email as plain text (e.g. email@example.com).
         
-        ### 3. SIGN-OFF:
-        "Yours Sincerely,"
-        [Candidate Name]
-        
-        ### 4. DATA RULES:
-        * Use REAL Name/Email/Phone from resume.
-        * Fix Name Casing.
+        ### 3. BODY STRUCTURE (Strictly 4 Paragraphs):
+        * **PARAGRAPH 1 (The Hook):** Introduce yourself by name and degree/university. State you are applying for **{job_title}** at **{employer_name}**. Mention why you admire the company (based on JD).
+        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume (or academic projects) that directly prove you can solve their key requirements. Use numbers.
+        * **PARAGRAPH 3 (Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect personal values to company mission.
+        * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and include a confident call to action for an interview.
+        * **SIGN-OFF:** End with "Yours Sincerely," followed by a newline and the [Candidate Name].
         """
-
-        final_prompt = base_instruction + "\n" + template_instruction
         
-        # --- 6. CALL AI ---
+        # 5. Call AI (Using High-Speed Model)
         completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile", 
-            messages=[
-                {"role": "system", "content": system_prompt}, 
-                {"role": "user", "content": final_prompt}
-            ],
+            model="llama-3.1-8b-instant", 
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
             temperature=0.7,
             max_tokens=1500,
         )
