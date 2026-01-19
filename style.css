@@ -288,13 +288,18 @@ body, .stApp {
   line-height: 1;
   
     /* EXACT UI BACKGROUND */
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-  border-bottom: 1px solid var(--glass-border);
-    background-size: 300% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
+  background: linear-gradient(
+    90deg,
+    var(--slate-200) 0%,
+    var(--primary-blue) 20%,
+    var(--info-cyan) 40%,
+    var(--primary-blue) 60%,
+    var(--slate-200) 80%,
+    var(--primary-blue) 100%
+  );
+
+  
+  
 
   /* Add subtle grid for depth */
   background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
