@@ -275,77 +275,81 @@ body, .stApp {
 }
 
 /* ==========================================================================
-   3. HEADER & HERO SECTION (DEBUG MODE - NO ANIMATIONS)
+   3. HEADER & HERO SECTION
    ========================================================================== */
 
-/* 1. Simple Flat Background (No moving liquid, no gradients) */
-.top-banner {
-  position: relative;
-  text-align: center;
-  padding: 8rem 2rem 10rem 2rem;
-  margin-bottom: 4rem;
-  
-  /* FLAT COLOR ONLY - No Image, No Animation */
-  background: #0f172a; 
-  background-image: none !important;
-  animation: none !important;
-  
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 60vh;
-  
-  /* Push to back */
-  z-index: 0;
-}
-
-/* Ensure no pseudo-elements are covering the text */
-.top-banner::before,
-.top-banner::after {
-    display: none !important;
-}
-
-/* 2. Header Text - HIGH CONTRAST MODE */
+/* Header Text (Version 2 - Epic) */
 .top-banner h1 {
-  font-size: 6rem;
-  font-weight: 900;
+  font-size: 6rem; /* Much larger */
+  font-weight: 900; /* Extra bold */
+  color: var(--slate-200);
   margin: 0 0 0.5rem 0;
-  line-height: 1;
   letter-spacing: -2px;
+  line-height: 1;
   
-  /* FORCE VISIBILITY */
-  position: relative;
-  z-index: 9999; /* Sit on top of everything */
-  
-  /* Disable Text Gradient for a moment to verify it exists */
-  /* If you see White text, the gradient was the issue */
-  background: none;
-  -webkit-text-fill-color: white !important;
-  color: white !important;
-  
-  display: inline-block;
+
+  /* Combined animations */
+  animation: 
+    epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
+    gradientShimmer 8s linear infinite,
 }
 
-/* 3. Rocket Icon */
-.top-banner h1::after {
-  content: "🚀";
-  position: absolute;
-  top: -30px;
-  right: -80px;
-  font-size: 4rem;
-  z-index: 9999;
-}
-
-/* 4. Stats */
+/* Hero Stats Badges */
 .hero-stats {
   display: flex;
   justify-content: center;
   gap: 2rem;
   margin-top: 3rem;
+  animation: fadeIn 1s ease-out 2.5s both;
   position: relative;
-  z-index: 9999;
+  z-index: 3; /* Above typing subtitle */
 }
+
+.stat-badge {
+  background: var(--glass-bg);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  min-width: 150px;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+.stat-badge:hover {
+  transform: translateY(-5px);
+  border-color: var(--primary-blue);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+.stat-badge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+  transition: 0.5s;
+}
+.stat-badge:hover::before {
+  left: 100%;
+}
+.stat-badge .stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: var(--primary-blue);
+  margin: 0;
+  line-height: 1;
+}
+.stat-badge .stat-label {
+  font-size: 0.9rem;
+  color: var(--slate-400);
+  margin-top: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
 
 /* ==========================================================================
    4. CONTENT CARDS, LISTS & AI INSIGHTS (FIXED)
@@ -1080,5 +1084,3 @@ ul.clean-list li::before {
   .hero-cta-button { font-size: 1.2rem !important; padding: 1rem 2rem !important; min-width: 250px; }
   .hero-stats { flex-direction: column; align-items: center; }
 }
-
-
