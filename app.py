@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from groq import Groq
 from datetime import datetime
 import streamlit.components.v1 as components
+import random
 
 # --- 1. CONFIGURATION & SETUP ---
 
@@ -239,29 +240,69 @@ def get_ai_analysis(job_description, job_title, employer_name):
         return {"summary": f"⚠️ Groq Error: {str(e)[:200]}"}
 
 @st.cache_data(show_spinner=False, ttl=3600)
-def generate_cover_letter(resume_text, job_description, job_title, employer_name):
+def generate_cover_letter(resume_text, job_description, job_title, employer_name, current_draft=None):
     """
-    Generates a high-quality, 4-paragraph evidence-based cover letter.
+    Generates a high-quality cover letter.
+    - FIRST DRAFT: Uses a strong model + strict structure for a perfect start.
+    - REGENERATE: Drastically shifts tone (Bold, Storyteller, etc.) for variety.
     """
     if not GROQ_ENABLED: return "⚠️ Enable AI to generate cover letter."
+    
     try:
-        system_prompt = """
-        You are an elite Career Strategist and Professional Copywriter.
-        Your goal is to write a cover letter that is persuasive, human, and focuses on "Value Fit" and "Motivation".
-        Do NOT be robotic. Do NOT provide conversational filler (e.g. "Here is the letter").
-        """
+        # --- 1. DEFINE TONES ---
+        tones = {
+            "Bold": "CONFIDENT & DISRUPTIVE. Short, punchy sentences. Be fearless. Sell the candidate as a high-ROI asset.",
+            "Storyteller": "NARRATIVE & HUMAN. Open with a specific problem the candidate solved. Connect emotionally.",
+            "Analytical": "DATA-OBSESSED. Focus almost entirely on numbers, metrics, and outcomes. Cut the fluff.",
+            "Passionate": "MISSION-DRIVEN. Focus on the company's mission and why the candidate loves it. Warm energy.",
+        }
+
+        # --- 2. SYSTEM PROMPT ---
+        system_prompt = "You are an elite Career Strategist. You write strictly evidence-based cover letters. No fluff."
+
+        # --- 3. MODE SELECTION ---
+        if current_draft:
+            # === REGENERATE MODE (Drastic Shift) ===
+            # Pick a random persona to give the user a totally new angle
+            selected_tone_name, selected_tone_desc = random.choice(list(tones.items()))
+            
+            base_instruction = f"""
+            You are an Expert Copywriter. The user wants a DRASTICALLY different version.
+            
+            ### NEW PERSONA: {selected_tone_name.upper()}
+            **Style Guide:** {selected_tone_desc}
+            
+            **TASK:**
+            1. Ignore the phrasing of the previous draft.
+            2. Write a BRAND NEW letter for {job_title} at {employer_name}.
+            3. Use the Resume facts, but present them strictly in the style of: {selected_tone_name}.
+            
+            PREVIOUS DRAFT (Do NOT sound like this):
+            "{current_draft[:500]}..."
+            """
+        else:
+            # === FIRST DRAFT MODE (High Quality) ===
+            # We use a very specific instruction to ensure the first try is great
+            base_instruction = f"""
+            Write a perfect, high-impact cover letter for {job_title} at {employer_name}.
+            
+            ### STRATEGY:
+            - **Tone:** Professional, Confident, and Direct.
+            - **Focus:** Prove "Value Fit" using metrics from the resume.
+            - **Forbidden:** Do not use clichés like "I am writing to apply" or "I believe I am a good fit". Start strong.
+            
+            RESUME DATA:
+            {resume_text[:15000]}
+            
+            JOB DESCRIPTION:
+            {job_description[:10000]}
+            """
+
+        # --- 4. TEMPLATE INSTRUCTION (Strictly Enforced) ---
+        template_instruction = f"""
+        ### STRUCTURE & FORMATTING RULES:
         
-        user_prompt = f"""
-        Write a high-impact cover letter for the role of "{job_title}" at "{employer_name}".
-        
-        RESUME CONTENT:
-        {resume_text[:15000]}
-        
-        JOB DESCRIPTION:
-        {job_description[:10000]}
-        
-        ### 1. HEADER FORMAT (Strictly Follow This):
-        
+        ### 1. HEADER (Must be exact):
         [Candidate Name]
         [Candidate Email] | [Candidate Phone]
         
@@ -272,27 +313,39 @@ def generate_cover_letter(resume_text, job_description, job_title, employer_name
         
         Dear Hiring Manager,
         
-        ### 2. CRITICAL RULES:
-        * **EXTRACT REAL DATA:** Use the Name, Phone, and Email found in the resume content. Do NOT use placeholders like "[Your Name]" unless the data is completely missing.
-        * **NO "JOHN":** Never invent a name. If name is missing, use "[Your Name]".
-        * **FIX CASING:** Auto-correct names to Title Case (e.g. "TAN RIHAO" -> "Tan Rihao").
-        * **NO MARKDOWN LINKS:** Write email as plain text (e.g. email@example.com).
+        ### 2. BODY (Must be 4 Paragraphs):
+        * **Paragraph 1 (The Hook):** Do NOT start boring. State clearly who you are (e.g., "As a Senior Dev with 5 years exp..."). Mention exactly why this specific company interests you.
+        * **Paragraph 2 (The Evidence):** Choose the single most impressive achievement from the resume that matches the Job Description. Use numbers/metrics.
+        * **Paragraph 3 (The Fit):** Connect your soft skills or work ethic to the company's mission/values.
+        * **Paragraph 4 (The Close):** Reiterate excitement and ask for the interview confidently.
         
-        ### 3. BODY STRUCTURE (Strictly 4 Paragraphs):
-        * **PARAGRAPH 1 (The Hook):** Introduce yourself by name and degree/university. State you are applying for **{job_title}** at **{employer_name}**. Mention why you admire the company (based on JD).
-        * **PARAGRAPH 2 (The Hard Skills):** Select 1-2 specific achievements from your resume that directly prove you can solve their key requirements. Use numbers.
-        * **PARAGRAPH 3 (Motivation & Culture):** Discuss your work ethic and "Why" you are a good culture fit. Connect personal values to company mission.
-        * **PARAGRAPH 4 (Closing):** Reiterate enthusiasm and include a confident call to action for an interview.
-        * **SIGN-OFF:** End with "Yours Sincerely," followed by a newline and the [Candidate Name].
+        ### 3. SIGN-OFF:
+        "Yours Sincerely,"
+        [Candidate Name]
+        
+        ### 4. DATA RULES:
+        * Use REAL Name/Email/Phone from resume. No "[Your Name]".
+        * Fix Name Casing (e.g. "TAN RIHAO").
         """
+
+        # Combine instructions
+        final_prompt = base_instruction + "\n" + template_instruction
+        
+        # --- 5. CALL AI ---
+        # ALWAYS use the strong model (70b) even for the first draft to ensure quality
+        model_choice = "llama-3.3-70b-versatile"
         
         completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant", 
-            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
-            temperature=0.7,
+            model=model_choice, 
+            messages=[
+                {"role": "system", "content": system_prompt}, 
+                {"role": "user", "content": final_prompt}
+            ],
+            temperature=0.7, # Balanced creativity
             max_tokens=1500,
         )
         return completion.choices[0].message.content
+        
     except Exception as e:
         return f"⚠️ Error: {e}"
 
@@ -601,13 +654,27 @@ if not st.session_state.matches_df.empty:
         st.markdown("<div style='margin-top: 1.5rem;'>", unsafe_allow_html=True)
         col_b1, col_b2 = st.columns([1, 1])
         
-        # --- BUTTON 1: COVER LETTER (Existing) ---
+# --- BUTTON 1: COVER LETTER (Fixed Regeneration) ---
         with col_b1:
-            lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
+            # Check if letter exists to determine label
+            is_regen = bool(cl_text)
+            lbl = "⚡ Regenerate (Improve)" if is_regen else "✍️ Draft Cover Letter"
+            
             if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
                 if GROQ_ENABLED:
-                    with st.spinner("✍️ Writing evidence-based letter..."):
-                        letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
+                    with st.spinner("✍️ Reviewing and enhancing letter..." if is_regen else "✍️ Drafting letter..."):
+                        
+                        # Pass 'cl_text' as the 'current_draft' argument
+                        # If cl_text is None (first time), it generates from scratch.
+                        # If cl_text exists, it triggers the "Editor" mode.
+                        letter = generate_cover_letter(
+                            st.session_state.resume_text, 
+                            job_desc, 
+                            job_title_txt, 
+                            employer,
+                            current_draft=cl_text # <--- THIS IS THE KEY FIX
+                        )
+                        
                         st.session_state.cover_letters[job_id] = letter
                         st.rerun()
                 else:
