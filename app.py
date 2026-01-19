@@ -14,7 +14,6 @@ from groq import Groq
 
 load_dotenv()
 
-
 st.set_page_config(
     page_title="HirePilot.Ai",
     page_icon="🚀",
