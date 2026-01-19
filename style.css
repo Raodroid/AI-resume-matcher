@@ -275,150 +275,76 @@ body, .stApp {
 }
 
 /* ==========================================================================
-   3. HEADER & HERO SECTION (FIXED LAYERING)
+   3. HEADER & HERO SECTION (DEBUG MODE - NO ANIMATIONS)
    ========================================================================== */
 
-/* 1. The Container (Added "isolation" to trap backgrounds in the back) */
+/* 1. Simple Flat Background (No moving liquid, no gradients) */
 .top-banner {
+  position: relative;
   text-align: center;
   padding: 8rem 2rem 10rem 2rem;
   margin-bottom: 4rem;
-  position: relative;
-  overflow: hidden;
-
-  /* EXACT UI BACKGROUND */
-  background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-  border-bottom: 1px solid var(--glass-border);
-
-  /* Add subtle grid for depth */
-  background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 50px 50px;
-
-  /* Center content */
+  
+  /* FLAT COLOR ONLY - No Image, No Animation */
+  background: #0f172a; 
+  background-image: none !important;
+  animation: none !important;
+  
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 60vh;
   
-  /* CRITICAL FIX: Creates a new stacking context */
-  isolation: isolate; 
-  z-index: 1;
+  /* Push to back */
+  z-index: 0;
 }
 
-/* 2. Header Text (Version 2 - Epic) */
+/* Ensure no pseudo-elements are covering the text */
+.top-banner::before,
+.top-banner::after {
+    display: none !important;
+}
+
+/* 2. Header Text - HIGH CONTRAST MODE */
 .top-banner h1 {
-  font-size: 6rem; /* Much larger */
-  font-weight: 900; /* Extra bold */
+  font-size: 6rem;
+  font-weight: 900;
   margin: 0 0 0.5rem 0;
-  letter-spacing: -2px;
   line-height: 1;
+  letter-spacing: -2px;
   
-  /* CRITICAL FOR VISIBILITY */
+  /* FORCE VISIBILITY */
   position: relative;
-  z-index: 10; /* Boosted to sit above background */
-  display: inline-block; 
-  transform: translateZ(0); /* Force GPU rendering to prevent glitching */
-
-  /* GRADIENT TEXT SETUP */
-  background: linear-gradient(
-    90deg,
-    var(--slate-200) 0%,
-    var(--primary-blue) 20%,
-    var(--info-cyan) 40%,
-    var(--primary-blue) 60%,
-    var(--slate-200) 80%,
-    var(--primary-blue) 100%
-  );
-  background-size: 300% auto;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  color: transparent;
-
-  /* ANIMATIONS */
-  animation: 
-    epicEntrance 2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards,
-    gradientShimmer 8s linear infinite;
+  z-index: 9999; /* Sit on top of everything */
+  
+  /* Disable Text Gradient for a moment to verify it exists */
+  /* If you see White text, the gradient was the issue */
+  background: none;
+  -webkit-text-fill-color: white !important;
+  color: white !important;
+  
+  display: inline-block;
 }
 
-/* 3. Rocket Icon Animation */
+/* 3. Rocket Icon */
 .top-banner h1::after {
   content: "🚀";
   position: absolute;
   top: -30px;
   right: -80px;
   font-size: 4rem;
-  
-  /* Animations */
-  animation: 
-    floatUp 8s ease-in-out infinite,
-    gradientShimmer 12s linear infinite;
-    
-  filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.5));
-  z-index: 11; /* Must be higher than h1 */
+  z-index: 9999;
 }
 
-/* 4. Hero Stats Badges */
+/* 4. Stats */
 .hero-stats {
   display: flex;
   justify-content: center;
   gap: 2rem;
   margin-top: 3rem;
-  animation: fadeIn 1s ease-out 2.5s both;
   position: relative;
-  z-index: 10; /* Keeps it clickable */
-}
-
-.stat-badge {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  padding: 1.5rem 2rem;
-  text-align: center;
-  min-width: 150px;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.stat-badge:hover {
-  transform: translateY(-5px);
-  border-color: var(--primary-blue);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-}
-
-.stat-badge::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-  transition: 0.5s;
-}
-
-.stat-badge:hover::before {
-  left: 100%;
-}
-
-.stat-badge .stat-number {
-  font-size: 2.5rem;
-  font-weight: 800;
-  color: var(--primary-blue);
-  margin: 0;
-  line-height: 1;
-}
-
-.stat-badge .stat-label {
-  font-size: 0.9rem;
-  color: var(--slate-400);
-  margin-top: 0.5rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  z-index: 9999;
 }
 
 /* ==========================================================================
