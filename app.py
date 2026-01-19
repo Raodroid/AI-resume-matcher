@@ -372,7 +372,7 @@ if not st.session_state.matches_df.empty:
     st.markdown('<div id="step-3-header" class="step-header" data-step="3"><div class="step-number">3</div> Matched Roles</div>', unsafe_allow_html=True)
     st.markdown('<div data-step-complete="3" style="display:none;"></div>', unsafe_allow_html=True)
     
-    st.success(f"🎉 Found {len(st.session_state.matches_df)} jobs matching your resume!")
+    st.success(f"Found {len(st.session_state.matches_df)} jobs matching your resume!")
 
     for idx, row in st.session_state.matches_df.iterrows():
         score = row.get('match_score', 0)
@@ -429,6 +429,7 @@ if not st.session_state.matches_df.empty:
                     <em>🎯 <strong>Why this role?</strong> {ai_data.get('role_intent')}</em>
                 </div>
                 """, unsafe_allow_html=True)
+                
                 
                 # Tech Stack
                 tech = ai_data.get('tech_stack', [])
