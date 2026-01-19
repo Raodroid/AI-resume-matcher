@@ -47,16 +47,40 @@ def local_css(file_name):
 
 local_css("style.css")
 
-# Configure Groq Client
-api_key = os.getenv("GROQ_API_KEY")
+def get_groq_key():
+    # Priority 1: System Environment Variable (Local .env)
+    key = os.getenv("GROQ_API_KEY")
+    
+    # Priority 2: Streamlit Secrets (Cloud Deployment)
+    if not key:
+        try:
+            key = st.secrets["GROQ_API_KEY"]
+        except:
+            pass
+            
+    return key
+
+# 3. Retrieve and Sanitize
+raw_api_key = get_groq_key()
 GROQ_ENABLED = False
 
-if api_key:
+if raw_api_key:
     try:
-        client = Groq(api_key=api_key)
+        # --- THE FIX FOR 401 ERRORS ---
+        # .strip() removes accidental spaces at start/end
+        # .replace() removes accidental quotes if you pasted them in the config
+        clean_key = raw_api_key.strip().replace('"', '').replace("'", "")
+        
+        client = Groq(api_key=clean_key)
         GROQ_ENABLED = True
+        
+        # Optional: verify it works (uncomment to test)
+        # client.models.list() 
+        
     except Exception as e:
-        st.error(f"⚠️ Groq configuration error: {e}")
+        st.error(f"⚠️ Groq Init Error: {e}")
+else:
+    st.warning("⚠️ GROQ_API_KEY not found. Please check your .env or Secrets.")
 
 # Import our modules
 try:
