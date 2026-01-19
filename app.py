@@ -9,10 +9,95 @@ import plotly.express as px
 from streamlit_lottie import st_lottie
 from dotenv import load_dotenv
 from groq import Groq
+from datetime import datetime
+import streamlit.components.v1 as components
 
 # --- 1. CONFIGURATION & SETUP ---
 
 load_dotenv()
+
+# --- DATABASE & TRACKING LOGIC ---
+HISTORY_FILE = "job_tracker.csv"
+
+def load_history():
+    try:
+        df = pd.read_csv(HISTORY_FILE)
+    except FileNotFoundError:
+        # Added "Link" column
+        df = pd.DataFrame(columns=["Date", "Company", "Role", "Status", "Link", "Match Score"])
+        df.to_csv(HISTORY_FILE, index=False)
+    return df
+
+## --- TRACKER DIALOG (CLEAN VERSION) ---
+@st.dialog("📋 Application Tracker", width="large")
+def open_tracker_dialog():
+    st.caption("Manage your job search pipeline here. Changes save automatically.")
+    
+    df = load_history()
+    
+    if not df.empty:
+        # 1. Force Text Types (Prevents "Float" Error)
+        df["Role"] = df["Role"].fillna("").astype(str)
+        df["Company"] = df["Company"].fillna("").astype(str)
+        df["Link"] = df["Link"].fillna("").astype(str)
+        
+        # 2. FILTER COLUMNS: Remove Match Score/Notes
+        # We explicitly select only the columns we want to display.
+        # Note: Saving this will remove the hidden columns from your CSV file.
+        target_columns = ["Status", "Link", "Date", "Role", "Company"]
+        
+        # Safety: Ensure columns exist before selecting
+        for col in target_columns:
+            if col not in df.columns:
+                df[col] = ""
+                
+        # Apply the filter
+        df = df[target_columns]
+
+        # 3. FULL WIDTH EDITOR
+        edited_df = st.data_editor(
+            df,
+            column_config={
+                "Status": st.column_config.SelectboxColumn(
+                    "Status",
+                    width="medium",
+                    options=["👀 Interested", "📨 Applied", "🗣️ Interview", "✅ Offer", "❌ Rejected"],
+                    required=True,
+                ),
+                "Link": st.column_config.LinkColumn("Link", display_text="Open Job"),
+                "Date": st.column_config.TextColumn("Date", disabled=True),
+                "Role": st.column_config.TextColumn("Role", width="medium"),
+                "Company": st.column_config.TextColumn("Company", width="medium"),
+            },
+            hide_index=True,
+            use_container_width=True,
+            num_rows="dynamic", # Allows deleting rows
+            key="dialog_editor"
+        )
+        
+        if not edited_df.equals(df):
+            update_history(edited_df)
+            st.rerun()
+    else:
+        st.info("No jobs tracked yet. Click 'Apply' on a job card to start!")
+def save_click(company, role, link, score):
+    """Auto-saves when user clicks Apply."""
+    df = load_history()
+    
+    # Avoid duplicates: Check if Company + Role already exists
+    if not ((df['Company'] == company) & (df['Role'] == role)).any():
+        new_entry = {
+            "Date": datetime.now().strftime("%Y-%m-%d"),
+            "Company": company,
+            "Role": role,
+            "Status": "👀 Interested", # Default status when clicking apply
+            "Link": link,
+        }
+        df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+        df.to_csv(HISTORY_FILE, index=False)
+
+def update_history(df):
+    df.to_csv(HISTORY_FILE, index=False)
 
 st.set_page_config(
     page_title="HirePilot.Ai",
@@ -261,6 +346,42 @@ st.markdown("""
     </div>
 </div>""", unsafe_allow_html=True)
 
+# ==========================================================================
+#   COMMAND BAR (Replaces Sidebar)
+# ==========================================================================
+
+# 1. Load Data
+df_history = load_history()
+
+# 2. Calculate Stats
+if not df_history.empty:
+    count_interested = len(df_history[df_history['Status'] == "👀 Interested"])
+    count_applied = len(df_history[df_history['Status'] == "📨 Applied"])
+    count_interview = len(df_history[df_history['Status'] == "🗣️ Interview"])
+else:
+    count_interested, count_applied, count_interview = 0, 0, 0
+
+# 3. Render the Dashboard
+st.markdown("<div style='margin-bottom: 2rem;'>", unsafe_allow_html=True) # Spacer
+
+col_dash1, col_dash2 = st.columns([3, 1])
+
+with col_dash1:
+    # Uses Streamlit's native metric components for a clean look
+    m1, m2, m3 = st.columns(3)
+    m1.metric("👀 To Review", count_interested, help="Jobs you clicked but haven't applied to yet")
+    m2.metric("📨 Applied", count_applied, help="Applications sent")
+    m3.metric("🗣️ Interviews", count_interview, help="Active conversations")
+
+with col_dash2:
+    # The Big Access Button
+    st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True) # Alignment spacer
+    if st.button("📋 Open Tracker", use_container_width=True, type="primary"):
+        open_tracker_dialog()
+
+st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("---") # Divider between dashboard and job feed
+
 
 # --- STEP 1: UPLOAD RESUME ---
 st.markdown('<div id="step-1-header" class="step-header" data-step="1"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
@@ -430,7 +551,7 @@ if not st.session_state.matches_df.empty:
                 </div>
                 """, unsafe_allow_html=True)
                 
-                
+
                 # Tech Stack
                 tech = ai_data.get('tech_stack', [])
                 if tech:
@@ -512,26 +633,57 @@ if not st.session_state.matches_df.empty:
             st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
             st.markdown('</div>', unsafe_allow_html=True)
         
-        # Footer Buttons - Compact
+# Footer Buttons - Compact
         st.markdown("<div style='margin-top: 1.5rem;'>", unsafe_allow_html=True)
         col_b1, col_b2 = st.columns([1, 1])
+        
+        # --- BUTTON 1: COVER LETTER (Existing) ---
         with col_b1:
             lbl = "⚡ Regenerate Letter" if cl_text else "✍️ Draft Cover Letter"
             if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
                 if GROQ_ENABLED:
-                        with st.spinner("✍️ Writing evidence-based letter..."):
-                            letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
+                    with st.spinner("✍️ Writing evidence-based letter..."):
+                        letter = generate_cover_letter(st.session_state.resume_text, job_desc, job_title_txt, employer)
                         st.session_state.cover_letters[job_id] = letter
                         st.rerun()
                 else:
-                        st.warning("⚠️ Enable AI to use this.")
-        with col_b2:
-            if row.get('job_apply_link'):
-                st.link_button("🚀 Apply For This Role", row['job_apply_link'], use_container_width=True)
+                    st.warning("⚠️ Enable AI to use this.")
         
-        st.markdown("</div></div>", unsafe_allow_html=True) # End Job Card
+# --- BUTTON 2: SMART APPLY (Reliable Track-then-Go Pattern) ---
+        with col_b2:
+            target_link = row.get('job_apply_link') or row.get('job_url') or '#'
+            
+            # 1. Check if link exists
+            if target_link and target_link != '#':
+                
+                # Unique keys for state management
+                track_key = f"track_state_{job_id}_{idx}"
+                
+                # 2. Check State: Has the user clicked "Track" yet?
+                if st.session_state.get(track_key, False):
+                    # STATE B: User tracked it -> Show the Link Button
+                    # This is a native link button, so it ALWAYS works.
+                    st.link_button(
+                        "🔗 Go to Site ➡", 
+                        url=target_link, 
+                        type="primary", 
+                        use_container_width=True
+                    )
+                else:
+                    # STATE A: User hasn't clicked yet -> Show "Apply & Track"
+                    if st.button("🚀 Apply & Track", key=f"btn_track_{idx}", use_container_width=True):
+                        # B. Update State to show the link button next
+                        st.session_state[track_key] = True
+                        # A. Save to Tracker
+                        current_score = ai_data.get('compatibility_score', 'N/A') if ai_data else 'N/A'
+                        save_click(employer, job_title_txt, target_link, current_score)
+                        
+                        # C. Toast and Rerun to swap the buttons instantly
+                        st.toast(f"Saved! Click the link to open.", icon="✅")
+                        st.rerun()
+            else:
+                st.button("🚫 Link Not Available", disabled=True, key=f"no_link_{idx}", use_container_width=True)
 
 # Footer
 st.markdown("---")
 st.markdown("<div style='text-align: center; opacity: 0.7;'> HirePilot.Ai • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
-
