@@ -346,42 +346,6 @@ st.markdown("""
     </div>
 </div>""", unsafe_allow_html=True)
 
-# ==========================================================================
-#   COMMAND BAR (Replaces Sidebar)
-# ==========================================================================
-
-# 1. Load Data
-df_history = load_history()
-
-# 2. Calculate Stats
-if not df_history.empty:
-    count_interested = len(df_history[df_history['Status'] == "👀 Interested"])
-    count_applied = len(df_history[df_history['Status'] == "📨 Applied"])
-    count_interview = len(df_history[df_history['Status'] == "🗣️ Interview"])
-else:
-    count_interested, count_applied, count_interview = 0, 0, 0
-
-# 3. Render the Dashboard
-st.markdown("<div style='margin-bottom: 2rem;'>", unsafe_allow_html=True) # Spacer
-
-col_dash1, col_dash2 = st.columns([3, 1])
-
-with col_dash1:
-    # Uses Streamlit's native metric components for a clean look
-    m1, m2, m3 = st.columns(3)
-    m1.metric("👀 To Review", count_interested, help="Jobs you clicked but haven't applied to yet")
-    m2.metric("📨 Applied", count_applied, help="Applications sent")
-    m3.metric("🗣️ Interviews", count_interview, help="Active conversations")
-
-with col_dash2:
-    # The Big Access Button
-    st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True) # Alignment spacer
-    if st.button("📋 Open Tracker", use_container_width=True, type="primary"):
-        open_tracker_dialog()
-
-st.markdown("</div>", unsafe_allow_html=True)
-st.markdown("---") # Divider between dashboard and job feed
-
 
 # --- STEP 1: UPLOAD RESUME ---
 st.markdown('<div id="step-1-header" class="step-header" data-step="1"><div class="step-number">1</div> Upload Your Resume</div>', unsafe_allow_html=True)
@@ -687,3 +651,101 @@ if not st.session_state.matches_df.empty:
 # Footer
 st.markdown("---")
 st.markdown("<div style='text-align: center; opacity: 0.7;'> HirePilot.Ai • Powered by Groq Llama 3.1</div>", unsafe_allow_html=True)
+
+# --- SIDEBAR: CLEAN DASHBOARD WIDGET ---
+with st.sidebar:
+    st.markdown("---")
+    
+    # 1. Load Data
+    df_history = load_history()
+    
+    # 2. Check if data exists
+    if not df_history.empty:
+        # Calculate Stats
+        count_interested = len(df_history[df_history['Status'] == "👀 Interested"])
+        count_applied = len(df_history[df_history['Status'] == "📨 Applied"])
+        count_interview = len(df_history[df_history['Status'] == "🗣️ Interview"])
+        
+        # Determine badge color dynamically
+        review_badge_class = 'urgent-badge' if count_interested > 0 else 'stat-badge-mini'
+        
+        # 3. CSS Styles (No Indentation!)
+        st.markdown("""
+<style>
+.tracker-card {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+.tracker-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #94a3b8;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 8px;
+}
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+}
+.stat-badge-mini {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+.urgent-badge {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    animation: pulse 2s infinite;
+}
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+}
+</style>
+""", unsafe_allow_html=True)
+
+        # 4. Render HTML Widget (No Indentation!)
+        html_content = f"""
+<div class="tracker-card">
+    <div class="tracker-title">🚦 Pipeline Status</div>
+    <div class="stat-row">
+        <span>👀 To Review</span>
+        <span class="{review_badge_class}">{count_interested}</span>
+    </div>
+    <div class="stat-row">
+        <span>📨 Applied</span>
+        <span class="stat-badge-mini">{count_applied}</span>
+    </div>
+    <div class="stat-row">
+        <span>🗣️ Interview</span>
+        <span class="stat-badge-mini">{count_interview}</span>
+    </div>
+</div>
+"""
+        st.markdown(html_content, unsafe_allow_html=True)
+        
+        # 5. The Action Button
+        if st.button("📂 Open Full Tracker", use_container_width=True):
+            open_tracker_dialog()
+            
+    else:
+        st.info("Your tracker is empty.")
+        st.caption("Click 'Apply' on a job to auto-track it here.")
