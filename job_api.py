@@ -11,6 +11,7 @@ import requests
 import hashlib
 import pickle
 from pathlib import Path
+from dotenv import load_dotenv, find_dotenv
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -19,9 +20,9 @@ logger = logging.getLogger(__name__)
 class JobSearchAPI:
     def __init__(self):
         """Initialize JobSearchAPI - Uses ONLY real API, NO mock data"""
-        # Load environment variables
-        from dotenv import load_dotenv
-        load_dotenv()
+        # Load environment variables from nearest .env
+        dotenv_path = find_dotenv(usecwd=True) or Path(__file__).resolve().parent / ".env"
+        load_dotenv(dotenv_path=dotenv_path)
         
         logger.info("🔧 Initializing JobSearchAPI...")
         

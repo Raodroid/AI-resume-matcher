@@ -9,6 +9,7 @@ import plotly.express as px
 from streamlit_lottie import st_lottie
 from dotenv import load_dotenv
 from groq import Groq
+import httpx
 from datetime import datetime
 import streamlit.components.v1 as components
 import random
@@ -71,7 +72,7 @@ def open_tracker_dialog():
                 "Company": st.column_config.TextColumn("Company", width="medium"),
             },
             hide_index=True,
-            use_container_width=True,
+            width="stretch",
             num_rows="dynamic", # Allows deleting rows
             key="dialog_editor"
         )
@@ -146,28 +147,6 @@ def get_groq_key():
             
     return key
 
-# 3. Retrieve and Sanitize
-raw_api_key = get_groq_key()
-GROQ_ENABLED = False
-
-if raw_api_key:
-    try:
-        # --- THE FIX FOR 401 ERRORS ---
-        # .strip() removes accidental spaces at start/end
-        # .replace() removes accidental quotes if you pasted them in the config
-        clean_key = raw_api_key.strip().replace('"', '').replace("'", "")
-        
-        client = Groq(api_key=clean_key)
-        GROQ_ENABLED = True
-        
-        # Optional: verify it works (uncomment to test)
-        # client.models.list() 
-        
-    except Exception as e:
-        st.error(f"⚠️ Groq Init Error: {e}")
-else:
-    st.warning("⚠️ GROQ_API_KEY not found. Please check your .env or Secrets.")
-
 # Import our modules
 try:
     from job_api import JobSearchAPI
@@ -192,6 +171,16 @@ def load_lottieurl(url: str):
 lottie_search = load_lottieurl("https://lottie.host/9d6d3765-a687-4389-a292-663290299f2e/F8Y1s2a2W4.json") 
 lottie_success = load_lottieurl("https://lottie.host/020cc9c9-7e2b-426c-9426-3d2379d76c94/Jg57s8c5Q8.json") 
 lottie_upload = load_lottieurl("https://lottie.host/2c1df74b-a19c-4ce4-8eb3-ee2ff88e5ffb/XA4W6IzcWS.json")
+
+
+# --- GROQ CLIENT SETUP ---
+GROQ_API_KEY = get_groq_key()
+GROQ_ENABLED = bool(GROQ_API_KEY)
+client = (
+    Groq(api_key=GROQ_API_KEY, http_client=httpx.Client())
+    if GROQ_ENABLED
+    else None
+)
 
 
 # --- 3. GROQ AI HELPER FUNCTIONS ---
@@ -475,7 +464,7 @@ if st.session_state.resume_uploaded:
         location = st.text_input("Location", placeholder="e.g. Singapore, Remote")
     with col3:
         st.markdown("<div style='height: 28px;'></div>", unsafe_allow_html=True) 
-        search_btn = st.button("🚀 Find Matches", use_container_width=True, type="primary")
+        search_btn = st.button("🚀 Find Matches", width="stretch", type="primary")
 
     if search_btn:
         if lottie_search:
@@ -621,7 +610,7 @@ if not st.session_state.matches_df.empty:
             
         else:
             # Deep Dive Button - Clean, no wrapper divs
-            if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", use_container_width=True):
+            if st.button(f"✨ Deep Dive Analysis", key=f"ai_btn_{idx}", width="stretch"):
                 if GROQ_ENABLED:
                     with st.spinner("🤖 Deep diving into job details..."):
                         result = get_ai_analysis(job_desc, job_title_txt, employer)
@@ -649,7 +638,7 @@ if not st.session_state.matches_df.empty:
                     st.session_state.cover_letters[job_id] = edited_cl
                     st.rerun()
 
-            st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", use_container_width=True, key=f"dl_cl_{idx}")
+            st.download_button("📥 Download Text", st.session_state.cover_letters[job_id], f"Cover_Letter_{employer}.txt", width="stretch", key=f"dl_cl_{idx}")
             st.markdown('</div>', unsafe_allow_html=True)
         
 # Footer Buttons - Compact
@@ -662,7 +651,7 @@ if not st.session_state.matches_df.empty:
             is_regen = bool(cl_text)
             lbl = "⚡ Regenerate (Improve)" if is_regen else "✍️ Draft Cover Letter"
             
-            if st.button(lbl, key=f"cl_btn_{idx}", use_container_width=True):
+            if st.button(lbl, key=f"cl_btn_{idx}", width="stretch"):
                 if GROQ_ENABLED:
                     with st.spinner("✍️ Analyzing profile & drafting letter..."):
                         
@@ -702,11 +691,11 @@ if not st.session_state.matches_df.empty:
                         "🔗 Go to Site ➡", 
                         url=target_link, 
                         type="primary", 
-                        use_container_width=True
+                        width="stretch"
                     )
                 else:
                     # STATE A: User hasn't clicked yet -> Show "Apply & Track"
-                    if st.button("🚀 Apply & Track", key=f"btn_track_{idx}", use_container_width=True):
+                    if st.button("🚀 Apply & Track", key=f"btn_track_{idx}", width="stretch"):
                         # B. Update State to show the link button next
                         st.session_state[track_key] = True
                         # A. Save to Tracker
@@ -717,7 +706,7 @@ if not st.session_state.matches_df.empty:
                         st.toast(f"Saved! Click the link to open.", icon="✅")
                         st.rerun()
             else:
-                st.button("🚫 Link Not Available", disabled=True, key=f"no_link_{idx}", use_container_width=True)
+                st.button("🚫 Link Not Available", disabled=True, key=f"no_link_{idx}", width="stretch")
 
 # Footer
 st.markdown("---")
@@ -814,7 +803,7 @@ with st.sidebar:
         st.markdown(html_content, unsafe_allow_html=True)
         
         # 5. The Action Button
-        if st.button("📂 Open Full Tracker", use_container_width=True):
+        if st.button("📂 Open Full Tracker", width="stretch"):
             open_tracker_dialog()
             
     else:
